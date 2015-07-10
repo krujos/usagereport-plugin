@@ -1,14 +1,19 @@
 package main
 
-import "github.com/cloudfoundry/cli/plugin"
+import (
+	"github.com/cloudfoundry/cli/plugin"
+	"github.com/krujos/cfcurl"
+)
 
 //UsageReportCmd the plugin
 type UsageReportCmd struct {
 }
 
 type org struct {
-	url  string
-	name string
+	url       string
+	name      string
+	quotaURL  string
+	spacesURL string
 }
 
 //GetMetadata returns metatada
@@ -45,7 +50,22 @@ func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 }
 
 func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) []org {
-	return nil
+	orgsJSON, _ := cfcurl.Curl(cli, "/v2/organizations")
+
+	orgs := []org{}
+	for _, o := range orgsJSON["resources"].([]interface{}) {
+		theOrg := o.(map[string]interface{})
+		entity := theOrg["entity"].(map[string]interface{})
+		metadata := theOrg["metadata"].(map[string]interface{})
+		orgs = append(orgs,
+			org{
+				name:      entity["name"].(string),
+				url:       metadata["url"].(string),
+				quotaURL:  entity["quota_definition_url"].(string),
+				spacesURL: entity["spaces_url"].(string),
+			})
+	}
+	return orgs
 }
 
 func main() {

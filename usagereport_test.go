@@ -37,5 +37,9 @@ var _ = Describe("UsageReport", func() {
 			orgs := cmd.getOrgs(fakeCliConnection)
 			Expect(len(orgs)).To(Equal(2))
 		})
+
+		It("does something intellegent when cf curl fails", func() {
+			Fail("NYI")
+		})
 	})
 })
