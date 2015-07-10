@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"os"
 
 	"github.com/cloudfoundry/cli/plugin/fakes"
@@ -34,12 +35,14 @@ var _ = Describe("UsageReport", func() {
 
 		It("should return two orgs", func() {
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsJSON, nil)
-			orgs := cmd.getOrgs(fakeCliConnection)
+			orgs, _ := cmd.getOrgs(fakeCliConnection)
 			Expect(len(orgs)).To(Equal(2))
 		})
 
 		It("does something intellegent when cf curl fails", func() {
-			Fail("NYI")
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("bad things"))
+			_, err := cmd.getOrgs(fakeCliConnection)
+			Expect(err).ToNot(BeNil())
 		})
 	})
 })

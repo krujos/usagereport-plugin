@@ -49,9 +49,12 @@ func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 	}
 }
 
-func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) []org {
-	orgsJSON, _ := cfcurl.Curl(cli, "/v2/organizations")
+func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]org, error) {
+	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
 
+	if nil != err {
+		return nil, err
+	}
 	orgs := []org{}
 	for _, o := range orgsJSON["resources"].([]interface{}) {
 		theOrg := o.(map[string]interface{})
@@ -65,7 +68,7 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) []org {
 				spacesURL: entity["spaces_url"].(string),
 			})
 	}
-	return orgs
+	return orgs, nil
 }
 
 func main() {
