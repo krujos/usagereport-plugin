@@ -44,5 +44,11 @@ var _ = Describe("UsageReport", func() {
 			_, err := cmd.getOrgs(fakeCliConnection)
 			Expect(err).ToNot(BeNil())
 		})
+
+	})
+	Describe("get quota memory limit", func() {
+		It("should return an error when it can't fetch the memory limit", func() {
+			Fail("NYI")
+		})
 	})
 })

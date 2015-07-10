@@ -74,7 +74,7 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, er
 }
 
 func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (string, error) {
-	return nil, nil
+	return "", nil
 }
 
 func main() {
