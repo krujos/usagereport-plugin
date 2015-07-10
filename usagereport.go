@@ -6,6 +6,11 @@ import "github.com/cloudfoundry/cli/plugin"
 type UsageReportCmd struct {
 }
 
+type org struct {
+	url  string
+	name string
+}
+
 //GetMetadata returns metatada
 func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
@@ -33,10 +38,14 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 }
 
 //Run runs the plugin
-func (cmd *UsageReportCmd) Run(cliConnection plugin.CliConnection, args []string) {
+func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 	if args[0] == "usage-report" {
-		cmd.UsageReportCommand(cliConnection, args)
+		cmd.UsageReportCommand(cli, args)
 	}
+}
+
+func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) []org {
+	return nil
 }
 
 func main() {
