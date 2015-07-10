@@ -11,7 +11,7 @@ import (
 type UsageReportCmd struct {
 }
 
-type org struct {
+type organization struct {
 	url       string
 	name      string
 	quotaURL  string
@@ -51,19 +51,19 @@ func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 	}
 }
 
-func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]org, error) {
+func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, error) {
 	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
 
 	if nil != err {
 		return nil, errors.New("Failed to get orgs!")
 	}
-	orgs := []org{}
+	orgs := []organization{}
 	for _, o := range orgsJSON["resources"].([]interface{}) {
 		theOrg := o.(map[string]interface{})
 		entity := theOrg["entity"].(map[string]interface{})
 		metadata := theOrg["metadata"].(map[string]interface{})
 		orgs = append(orgs,
-			org{
+			organization{
 				name:      entity["name"].(string),
 				url:       metadata["url"].(string),
 				quotaURL:  entity["quota_definition_url"].(string),
@@ -71,6 +71,10 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]org, error) {
 			})
 	}
 	return orgs, nil
+}
+
+func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (string, error) {
+	return nil, nil
 }
 
 func main() {
