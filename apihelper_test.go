@@ -82,7 +82,7 @@ var _ = Describe("UsageReport", func() {
 	})
 
 	Describe("it Gets the org memory usage", func() {
-		var org organization
+		var org Organization
 		var usageJSON []string
 
 		BeforeEach(func() {

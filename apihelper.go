@@ -7,24 +7,32 @@ import (
 	"github.com/krujos/cfcurl"
 )
 
+//Organization representation
+type Organization struct {
+	url       string
+	name      string
+	quotaURL  string
+	spacesURL string
+}
+
 //APIHelper to wrap cf curl results
 type APIHelper struct{}
 
 //GetOrgs returns a struct that represents critical fields in the JSON
-func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]organization, error) {
-	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
+func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) {
+	orgsJSON, err := cfcurl.Curl(cli, "/v2/Organizations")
 
 	if nil != err {
 		//TODO Swollow this?
 		return nil, errors.New("Failed to get orgs!")
 	}
-	orgs := []organization{}
+	orgs := []Organization{}
 	for _, o := range orgsJSON["resources"].([]interface{}) {
 		theOrg := o.(map[string]interface{})
 		entity := theOrg["entity"].(map[string]interface{})
 		metadata := theOrg["metadata"].(map[string]interface{})
 		orgs = append(orgs,
-			organization{
+			Organization{
 				name:      entity["name"].(string),
 				url:       metadata["url"].(string),
 				quotaURL:  entity["quota_definition_url"].(string),
@@ -44,7 +52,7 @@ func (api *APIHelper) GetQuotaMemoryLimit(cli plugin.CliConnection, quotaURL str
 }
 
 //GetOrgMemoryUsage returns teh amount of memory (in MB) that the org is consuming
-func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org organization) (float64, error) {
+func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organization) (float64, error) {
 	usageJSON, err := cfcurl.Curl(cli, org.url+"/memory_usage")
 	if nil != err {
 		return 0, err
