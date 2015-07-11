@@ -18,6 +18,9 @@ type organization struct {
 	spacesURL string
 }
 
+//APIHelper to wrap cf curl results
+type APIHelper struct{}
+
 //GetMetadata returns metatada
 func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
@@ -51,7 +54,7 @@ func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 	}
 }
 
-func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, error) {
+func (api *APIHelper) getOrgs(cli plugin.CliConnection) ([]organization, error) {
 	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
 
 	if nil != err {
@@ -74,7 +77,7 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, er
 	return orgs, nil
 }
 
-func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (float64, error) {
+func (api *APIHelper) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (float64, error) {
 	quotaJSON, err := cfcurl.Curl(cli, quotaURL)
 	if nil != err {
 		return 0, err
@@ -82,7 +85,7 @@ func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaUR
 	return quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64), nil
 }
 
-func (cmd *UsageReportCmd) getOrgMemoryUsage(cli plugin.CliConnection, org organization) (float64, error) {
+func (api *APIHelper) getOrgMemoryUsage(cli plugin.CliConnection, org organization) (float64, error) {
 	usageJSON, err := cfcurl.Curl(cli, org.url+"/memory_usage")
 	if nil != err {
 		return 0, err
