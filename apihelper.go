@@ -15,7 +15,14 @@ type Organization struct {
 	spacesURL string
 }
 
-//APIHelper to wrap cf curl results
+//CFAPIHelper to wrap cf curl results
+type CFAPIHelper interface {
+	GetOrgs() []Organization
+	GetQuotaMemoryLimit() float64
+	GetOrgMemoryUsage() float64
+}
+
+//APIHelper implementation
 type APIHelper struct{}
 
 //GetOrgs returns a struct that represents critical fields in the JSON
