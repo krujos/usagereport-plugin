@@ -79,9 +79,7 @@ func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaUR
 	if nil != err {
 		return 0, err
 	}
-
 	limit := quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64)
-
 	return limit, nil
 }
 

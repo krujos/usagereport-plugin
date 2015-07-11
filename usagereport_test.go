@@ -50,9 +50,15 @@ var _ = Describe("UsageReport", func() {
 		It("does something intellegent when cf curl fails", func() {
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(
 				nil, errors.New("bad things"))
-
 			_, err := cmd.getOrgs(fakeCliConnection)
 			Expect(err).ToNot(BeNil())
+		})
+
+		It("populates the url", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsJSON, nil)
+			orgs, _ := cmd.getOrgs(fakeCliConnection)
+			org := orgs[0]
+			Expect(org.url).To(Equal("/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd"))
 		})
 
 	})
