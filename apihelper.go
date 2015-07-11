@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/cfcurl"
 )
@@ -30,9 +28,9 @@ func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) 
 	orgsJSON, err := cfcurl.Curl(cli, "/v2/Organizations")
 
 	if nil != err {
-		//TODO Swollow this?
-		return nil, errors.New("Failed to get orgs!")
+		return nil, err
 	}
+
 	orgs := []Organization{}
 	for _, o := range orgsJSON["resources"].([]interface{}) {
 		theOrg := o.(map[string]interface{})
