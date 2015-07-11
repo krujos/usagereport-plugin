@@ -84,11 +84,14 @@ func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaUR
 }
 
 func (cmd *UsageReportCmd) getOrgMemoryUsage(cli plugin.CliConnection, org organization) (float64, error) {
-	_, err := cfcurl.Curl(cli, org.url+"/memory_usage")
+	usageJSON, err := cfcurl.Curl(cli, org.url+"/memory_usage")
 	if nil != err {
 		return 0, err
 	}
-	return 0, nil
+
+	usage := usageJSON["memory_usage_in_mb"].(float64)
+
+	return usage, nil
 }
 
 func main() {
