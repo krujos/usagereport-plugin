@@ -23,7 +23,7 @@ var _ = Describe("UsageReport", func() {
 		var orgsJSON []string
 
 		BeforeEach(func() {
-			file, _ := os.Open("orgs.json")
+			file, _ := os.Open("test-data/orgs.json")
 			defer file.Close()
 			scanner := bufio.NewScanner(file)
 			for scanner.Scan() {
