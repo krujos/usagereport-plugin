@@ -37,10 +37,6 @@ var _ = Describe("UsageReport", func() {
 			orgsJSON = slurp("test-data/orgs.json")
 		})
 
-		AfterEach(func() {
-			orgsJSON = nil
-		})
-
 		It("should return two orgs", func() {
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsJSON, nil)
 			orgs, _ := cmd.getOrgs(fakeCliConnection)
@@ -70,10 +66,6 @@ var _ = Describe("UsageReport", func() {
 			quotaJSON = slurp("test-data/quota.json")
 		})
 
-		AfterEach(func() {
-			quotaJSON = nil
-		})
-
 		It("should return an error when it can't fetch the memory limit", func() {
 			_, err := cmd.getQuotaMemoryLimit(fakeCliConnection, "/v2/somequota")
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(
@@ -91,13 +83,24 @@ var _ = Describe("UsageReport", func() {
 
 	Describe("it gets the org memory usage", func() {
 		var org organization
+		var usageJSON []string
+
+		BeforeEach(func() {
+			usageJSON = slurp("test-data/memory_usage.json")
+		})
 
 		It("should return an error when it can't fetch the orgs memory usage", func() {
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil,
 				errors.New("Bad things"))
-
-			_, err := cmd.getOrgMemoryUsage(org)
+			_, err := cmd.getOrgMemoryUsage(fakeCliConnection, org)
 			Expect(err).ToNot(BeNil())
+		})
+
+		It("Shoudl return the memory usage", func() {
+			org.url = "/v2/organizations/1234/"
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(usageJSON, nil)
+			usage, _ := cmd.getOrgMemoryUsage(fakeCliConnection, org)
+			Expect(usage).To(Equal(float64(512)))
 		})
 	})
 
