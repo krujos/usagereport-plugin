@@ -79,8 +79,7 @@ func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaUR
 	if nil != err {
 		return 0, err
 	}
-	limit := quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64)
-	return limit, nil
+	return quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64), nil
 }
 
 func (cmd *UsageReportCmd) getOrgMemoryUsage(cli plugin.CliConnection, org organization) (float64, error) {
@@ -88,10 +87,7 @@ func (cmd *UsageReportCmd) getOrgMemoryUsage(cli plugin.CliConnection, org organ
 	if nil != err {
 		return 0, err
 	}
-
-	usage := usageJSON["memory_usage_in_mb"].(float64)
-
-	return usage, nil
+	return usageJSON["memory_usage_in_mb"].(float64), nil
 }
 
 func main() {
