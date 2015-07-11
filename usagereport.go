@@ -74,12 +74,15 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, er
 	return orgs, nil
 }
 
-func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (string, error) {
-	_, err := cfcurl.Curl(cli, quotaURL)
+func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (float64, error) {
+	quotaJSON, err := cfcurl.Curl(cli, quotaURL)
 	if nil != err {
-		return "", err
+		return 0, err
 	}
-	return "", nil
+
+	limit := quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64)
+
+	return limit, nil
 }
 
 func main() {

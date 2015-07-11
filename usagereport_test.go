@@ -10,6 +10,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func slurp(filename string) []string {
+	var b []string
+	file, _ := os.Open(filename)
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		b = append(b, scanner.Text())
+	}
+	return b
+}
+
 var _ = Describe("UsageReport", func() {
 	var cmd *UsageReportCmd
 	var fakeCliConnection *fakes.FakeCliConnection
@@ -23,12 +34,7 @@ var _ = Describe("UsageReport", func() {
 		var orgsJSON []string
 
 		BeforeEach(func() {
-			file, _ := os.Open("test-data/orgs.json")
-			defer file.Close()
-			scanner := bufio.NewScanner(file)
-			for scanner.Scan() {
-				orgsJSON = append(orgsJSON, scanner.Text())
-			}
+			orgsJSON = slurp("test-data/orgs.json")
 		})
 
 		AfterEach(func() {
@@ -51,11 +57,28 @@ var _ = Describe("UsageReport", func() {
 
 	})
 	Describe("get quota memory limit", func() {
+		var quotaJSON []string
+
+		BeforeEach(func() {
+			quotaJSON = slurp("test-data/quota.json")
+		})
+
+		AfterEach(func() {
+			quotaJSON = nil
+		})
+
 		It("should return an error when it can't fetch the memory limit", func() {
 			_, err := cmd.getQuotaMemoryLimit(fakeCliConnection, "/v2/somequota")
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(
 				nil, errors.New("Bad Things"))
 			Expect(err).ToNot(BeNil())
+		})
+
+		It("should reutrn 10240 as the memory limit", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(
+				quotaJSON, nil)
+			limit, _ := cmd.getQuotaMemoryLimit(fakeCliConnection, "/v2/quotas/")
+			Expect(limit).To(Equal(float64(10240)))
 		})
 	})
 })
