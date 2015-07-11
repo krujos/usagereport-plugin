@@ -62,6 +62,7 @@ var _ = Describe("UsageReport", func() {
 		})
 
 	})
+
 	Describe("get quota memory limit", func() {
 		var quotaJSON []string
 
@@ -87,4 +88,17 @@ var _ = Describe("UsageReport", func() {
 			Expect(limit).To(Equal(float64(10240)))
 		})
 	})
+
+	Describe("it gets the org memory usage", func() {
+		var org organization
+
+		It("should return an error when it can't fetch the orgs memory usage", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil,
+				errors.New("Bad things"))
+
+			_, err := cmd.getOrgMemoryUsage(org)
+			Expect(err).ToNot(BeNil())
+		})
+	})
+
 })

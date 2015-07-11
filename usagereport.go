@@ -83,6 +83,10 @@ func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaUR
 	return limit, nil
 }
 
+func (cmd *UsageReportCmd) getOrgMemoryUsage(org organization) (float64, error) {
+	return 0, nil
+}
+
 func main() {
 	plugin.Start(new(UsageReportCmd))
 }
