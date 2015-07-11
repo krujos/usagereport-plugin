@@ -11,16 +11,18 @@ import (
 )
 
 var _ = Describe("UsageReport", func() {
+	var cmd *UsageReportCmd
+	var fakeCliConnection *fakes.FakeCliConnection
+
+	BeforeEach(func() {
+		fakeCliConnection = &fakes.FakeCliConnection{}
+		cmd = &UsageReportCmd{}
+	})
 
 	Describe("get orgs", func() {
-		var fakeCliConnection *fakes.FakeCliConnection
 		var orgsJSON []string
-		var cmd *UsageReportCmd
 
 		BeforeEach(func() {
-			fakeCliConnection = &fakes.FakeCliConnection{}
-			cmd = &UsageReportCmd{}
-
 			file, _ := os.Open("orgs.json")
 			defer file.Close()
 			scanner := bufio.NewScanner(file)
@@ -40,7 +42,9 @@ var _ = Describe("UsageReport", func() {
 		})
 
 		It("does something intellegent when cf curl fails", func() {
-			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("bad things"))
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(
+				nil, errors.New("bad things"))
+
 			_, err := cmd.getOrgs(fakeCliConnection)
 			Expect(err).ToNot(BeNil())
 		})
@@ -48,7 +52,10 @@ var _ = Describe("UsageReport", func() {
 	})
 	Describe("get quota memory limit", func() {
 		It("should return an error when it can't fetch the memory limit", func() {
-			Fail("NYI")
+			_, err := cmd.getQuotaMemoryLimit(fakeCliConnection, "/v2/somequota")
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(
+				nil, errors.New("Bad Things"))
+			Expect(err).ToNot(BeNil())
 		})
 	})
 })

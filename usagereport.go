@@ -55,6 +55,7 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, er
 	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
 
 	if nil != err {
+		//TODO Swollow this?
 		return nil, errors.New("Failed to get orgs!")
 	}
 	orgs := []organization{}
@@ -74,6 +75,10 @@ func (cmd *UsageReportCmd) getOrgs(cli plugin.CliConnection) ([]organization, er
 }
 
 func (cmd *UsageReportCmd) getQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (string, error) {
+	_, err := cfcurl.Curl(cli, quotaURL)
+	if nil != err {
+		return "", err
+	}
 	return "", nil
 }
 
