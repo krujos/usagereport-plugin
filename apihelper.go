@@ -17,9 +17,9 @@ type Organization struct {
 
 //CFAPIHelper to wrap cf curl results
 type CFAPIHelper interface {
-	GetOrgs() []Organization
-	GetQuotaMemoryLimit() float64
-	GetOrgMemoryUsage() float64
+	GetOrgs(plugin.CliConnection) ([]Organization, error)
+	GetQuotaMemoryLimit(plugin.CliConnection, string) (float64, error)
+	GetOrgMemoryUsage(plugin.CliConnection, Organization) (float64, error)
 }
 
 //APIHelper implementation

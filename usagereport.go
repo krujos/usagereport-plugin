@@ -38,7 +38,7 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 	//Do the things
 }
 
-func (cmd *UsageReportCmd) getOrgs(api *APIHelper) (*org, error) {
+func (cmd *UsageReportCmd) getOrgs(api *CFAPIHelper) (*org, error) {
 	return nil, nil
 }
 
