@@ -11,10 +11,20 @@ type UsageReportCmd struct {
 	cli       plugin.CliConnection
 }
 
-type Org struct {
+type org struct {
 	name        string
 	memoryQuota float64
 	memoryUsage float64
+	spaces      []space
+}
+
+type space struct {
+	apps []app
+}
+
+type app struct {
+	ram       float64
+	instances float64
 }
 
 //GetMetadata returns metatada
@@ -43,33 +53,37 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 	//Do the things
 }
 
-func (cmd *UsageReportCmd) getOrgs() ([]Org, error) {
+func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 	rawOrgs, err := cmd.apiHelper.GetOrgs(cmd.cli)
 	if nil != err {
 		return nil, err
 	}
 
-	var orgs = []Org{}
+	var orgs = []org{}
 
-	for _, org := range rawOrgs {
+	for _, o := range rawOrgs {
 
-		usage, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, org)
+		usage, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, o)
 		if nil != err {
 			return nil, err
 		}
 
-		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, org.QuotaURL)
+		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, o.QuotaURL)
 		if nil != err {
 			return nil, err
 		}
 
-		orgs = append(orgs, Org{
-			name:        org.Name,
+		orgs = append(orgs, org{
+			name:        o.Name,
 			memoryQuota: quota,
 			memoryUsage: usage,
 		})
 	}
 	return orgs, nil
+}
+
+func (cmd *UsageReportCmd) getSpaces(org org) ([]space, error) {
+	return nil, nil
 }
 
 //Run runs the plugin
