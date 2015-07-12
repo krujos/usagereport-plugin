@@ -126,11 +126,19 @@ var _ = Describe("UsageReport", func() {
 			Expect(err).ToNot(BeNil())
 		})
 
-		It("Should return two spaces", func() {
+		It("should return two spaces", func() {
 			org.SpacesURL = "/whatever"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(spacesJSON, nil)
 			spaces, _ := api.GetOrgSpaces(fakeCliConnection, org)
 			Expect(len(spaces)).To(Equal(2))
+		})
+
+		It("should have name jdk-space", func() {
+			org.SpacesURL = "/whatever"
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(spacesJSON, nil)
+			spaces, _ := api.GetOrgSpaces(fakeCliConnection, org)
+			Expect(spaces[0].Name).To(Equal("jdk-space"))
+			Expect(spaces[0].AppsURL).To(Equal("/v2/spaces/81c310ed-d258-48d7-a57a-6522d93a4217/apps"))
 		})
 	})
 })
