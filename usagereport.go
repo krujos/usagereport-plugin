@@ -4,6 +4,7 @@ import "github.com/cloudfoundry/cli/plugin"
 
 //UsageReportCmd the plugin
 type UsageReportCmd struct {
+	apiHelper CFAPIHelper
 }
 
 type org struct {
@@ -38,7 +39,7 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 	//Do the things
 }
 
-func (cmd *UsageReportCmd) getOrgs(api *CFAPIHelper) (*org, error) {
+func (cmd *UsageReportCmd) getOrgs() (*org, error) {
 	return nil, nil
 }
 
