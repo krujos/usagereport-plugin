@@ -94,14 +94,21 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
 		return nil, err
 	}
 	var spaces = []space{}
-	for range rawSpaces {
-		//TODO Insert values form spaces
-		spaces = append(spaces, space{})
+	for _, s := range rawSpaces {
+		apps, err := cmd.getApps(s.AppsURL)
+		if nil != err {
+			return nil, err
+		}
+		spaces = append(spaces, space{apps: apps})
 	}
 	return spaces, nil
 }
 
 func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
+	_, err := cmd.apiHelper.GetSpaceApps(cmd.cli, appsURL)
+	if nil != err {
+		return nil, err
+	}
 	return nil, nil
 }
 

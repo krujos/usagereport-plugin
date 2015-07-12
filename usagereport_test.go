@@ -29,8 +29,8 @@ var _ = Describe("Usagereport", func() {
 		Context("good org bad other thigns", func() {
 			BeforeEach(func() {
 				fakeAPI.GetOrgsReturns([]apihelper.Organization{apihelper.Organization{}}, nil)
-
 			})
+
 			It("should return an error if cf curl /v2/organizations/{guid}/memory_usage fails", func() {
 				fakeAPI.GetOrgMemoryUsageReturns(0, errors.New("Bad Things"))
 				_, err := cmd.getOrgs()
@@ -49,6 +49,15 @@ var _ = Describe("Usagereport", func() {
 				Expect(err).ToNot(BeNil())
 				Expect(fakeAPI.GetOrgSpacesCallCount()).To(Equal(1))
 			})
+			It("Should return an error if cf curl to get the apps in a space fails", func() {
+				fakeAPI.GetOrgSpacesReturns(
+					[]apihelper.Space{apihelper.Space{AppsURL: "/v2/apps"}}, nil)
+				fakeAPI.GetSpaceAppsReturns(nil, errors.New("Bad Things"))
+				_, err := cmd.getOrgs()
+				Expect(err).ToNot(BeNil())
+				Expect(fakeAPI.GetSpaceAppsCallCount()).To(Equal(1))
+			})
+
 		})
 
 	})
@@ -59,8 +68,11 @@ var _ = Describe("Usagereport", func() {
 			QuotaURL: "/v2/quotas/2345",
 		}
 
-		It("should return two one org using 1 mb of 2 mb quota", func() {
+		BeforeEach(func() {
 			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
+		})
+
+		It("should return two one org using 1 mb of 2 mb quota", func() {
 			fakeAPI.GetOrgMemoryUsageReturns(float64(1), nil)
 			fakeAPI.GetQuotaMemoryLimitReturns(float64(2), nil)
 			orgs, err := cmd.getOrgs()
@@ -72,7 +84,6 @@ var _ = Describe("Usagereport", func() {
 		})
 
 		It("Should return an org with 1 space", func() {
-			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{apihelper.Space{}, apihelper.Space{}}, nil)
 			orgs, _ := cmd.getOrgs()
@@ -80,11 +91,25 @@ var _ = Describe("Usagereport", func() {
 		})
 
 		It("Should not choke on an org with no spaces", func() {
-			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{}, nil)
 			orgs, _ := cmd.getOrgs()
 			Expect(len(orgs[0].spaces)).To(Equal(0))
 		})
+		/*
+			It("Should return two apps from a space", func() {
+				fakeAPI.GetSpaceAppsReturns(
+					[]apihelper.App{
+						apihelper.App{},
+						apihelper.App{},
+						apihelper.App{},
+					},
+					nil)
+				fakeAPI.GetOrgSpacesReturns(
+					[]apihelper.Space{}, nil)
+				orgs, _ := cmd.getOrgs()
+				Expect(len(orgs[0].spaces[0].apps)).To(Equal(3))
+			})
+		*/
 	})
 })

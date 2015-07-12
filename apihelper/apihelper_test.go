@@ -159,4 +159,6 @@ var _ = Describe("UsageReport", func() {
 			Expect(apps[0].RAM).To(Equal(float64(1024)))
 		})
 	})
+
+	// TODO need tests for no spaces and no apps in org.
 })
