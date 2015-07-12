@@ -105,11 +105,18 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
 }
 
 func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
-	_, err := cmd.apiHelper.GetSpaceApps(cmd.cli, appsURL)
+	rawApps, err := cmd.apiHelper.GetSpaceApps(cmd.cli, appsURL)
 	if nil != err {
 		return nil, err
 	}
-	return nil, nil
+	var apps = []app{}
+	for _, a := range rawApps {
+		apps = append(apps, app{
+			instances: a.Instances,
+			ram:       a.RAM,
+		})
+	}
+	return apps, nil
 }
 
 //Run runs the plugin

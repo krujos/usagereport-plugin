@@ -96,20 +96,24 @@ var _ = Describe("Usagereport", func() {
 			orgs, _ := cmd.getOrgs()
 			Expect(len(orgs[0].spaces)).To(Equal(0))
 		})
-		/*
-			It("Should return two apps from a space", func() {
-				fakeAPI.GetSpaceAppsReturns(
-					[]apihelper.App{
-						apihelper.App{},
-						apihelper.App{},
-						apihelper.App{},
-					},
-					nil)
-				fakeAPI.GetOrgSpacesReturns(
-					[]apihelper.Space{}, nil)
-				orgs, _ := cmd.getOrgs()
-				Expect(len(orgs[0].spaces[0].apps)).To(Equal(3))
-			})
-		*/
+
+		It("Should return two apps from a space", func() {
+			fakeAPI.GetOrgSpacesReturns(
+				[]apihelper.Space{apihelper.Space{}}, nil)
+
+			fakeAPI.GetSpaceAppsReturns(
+				[]apihelper.App{
+					apihelper.App{},
+					apihelper.App{},
+					apihelper.App{},
+				},
+				nil)
+			orgs, _ := cmd.getOrgs()
+			org := orgs[0]
+			space := org.spaces[0]
+			apps := space.apps
+			Expect(len(apps)).To(Equal(3))
+		})
+
 	})
 })
