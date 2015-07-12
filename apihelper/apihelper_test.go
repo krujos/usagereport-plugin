@@ -103,7 +103,7 @@ var _ = Describe("UsageReport", func() {
 			Expect(err).ToNot(BeNil())
 		})
 
-		It("Shoudl return the memory usage", func() {
+		It("should return the memory usage", func() {
 			org.URL = "/v2/organizations/1234"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(usageJSON, nil)
 			usage, _ := api.GetOrgMemoryUsage(fakeCliConnection, org)
@@ -111,4 +111,19 @@ var _ = Describe("UsageReport", func() {
 		})
 	})
 
+	Describe("get spaces", func() {
+		var spacesJSON []string
+		var org Organization
+
+		BeforeEach(func() {
+			spacesJSON = slurp("test-data/spaces.json")
+		})
+
+		It("should error when the the spaces url fails", func() {
+			org.SpacesURL = "/v2/organizations/12345/spaces"
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("Bad Things"))
+			_, err := api.GetOrgSpaces(fakeCliConnection, org)
+			Expect(err).ToNot(BeNil())
+		})
+	})
 })

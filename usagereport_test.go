@@ -47,6 +47,7 @@ var _ = Describe("Usagereport", func() {
 			URL:      "/v2/orginzations/1234",
 			QuotaURL: "/v2/quotas/2345",
 		}
+
 		It("should return two one org using 1 mb of 2 mb quota", func() {
 			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
 			fakeAPI.GetOrgMemoryUsageReturns(float64(1), nil)

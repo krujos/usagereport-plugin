@@ -13,11 +13,18 @@ type Organization struct {
 	SpacesURL string
 }
 
+//Space representation
+type Space struct {
+	Name    string
+	AppsURL string
+}
+
 //CFAPIHelper to wrap cf curl results
 type CFAPIHelper interface {
 	GetOrgs(plugin.CliConnection) ([]Organization, error)
 	GetQuotaMemoryLimit(plugin.CliConnection, string) (float64, error)
 	GetOrgMemoryUsage(plugin.CliConnection, Organization) (float64, error)
+	GetOrgSpaces(plugin.CliConnection, Organization) ([]Space, error)
 }
 
 //APIHelper implementation
@@ -56,11 +63,20 @@ func (api *APIHelper) GetQuotaMemoryLimit(cli plugin.CliConnection, quotaURL str
 	return quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64), nil
 }
 
-//GetOrgMemoryUsage returns teh amount of memory (in MB) that the org is consuming
+//GetOrgMemoryUsage returns the amount of memory (in MB) that the org is consuming
 func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organization) (float64, error) {
 	usageJSON, err := cfcurl.Curl(cli, org.URL+"/memory_usage")
 	if nil != err {
 		return 0, err
 	}
 	return usageJSON["memory_usage_in_mb"].(float64), nil
+}
+
+//GetOrgSpaces returns the spaces in an org.
+func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, org Organization) ([]Space, error) {
+	_, err := cfcurl.Curl(cli, org.SpacesURL)
+	if nil != err {
+		return nil, err
+	}
+	return nil, nil
 }
