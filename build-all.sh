@@ -20,19 +20,19 @@ if [[ "$1" = "release" ]] ; then
 fi
 
 GOOS=linux GOARCH=amd64 go build
-LINUX64_SHA1=`cat usage-plugin | openssl sha1`
+LINUX64_SHA1=`cat usagereport-plugin | openssl sha1`
 mkdir -p bin/linux64
-mv usage-plugin bin/linux64
+mv usagereport-plugin bin/linux64
 
 GOOS=darwin GOARCH=amd64 go build
-OSX_SHA1=`cat usage-plugin | openssl sha1`
+OSX_SHA1=`cat usagereport-plugin | openssl sha1`
 mkdir -p bin/osx
-mv usage-plugin bin/osx
+mv usagereport-plugin bin/osx
 
 GOOS=windows GOARCH=amd64 go build
-WIN64_SHA1=`cat usage-plugin.exe | openssl sha1`
+WIN64_SHA1=`cat usagereport-plugin.exe | openssl sha1`
 mkdir -p bin/win64
-mv usage-plugin.exe bin/win64
+mv usagereport-plugin.exe bin/win64
 
 cat repo-index.yml |
 sed "s/osx-sha1/$OSX_SHA1/" |
