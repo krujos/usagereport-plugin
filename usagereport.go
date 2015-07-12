@@ -54,6 +54,11 @@ func (cmd *UsageReportCmd) getOrgs() (*org, error) {
 		if nil != err {
 			return nil, err
 		}
+
+		_, err = cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, org.QuotaURL)
+		if nil != err {
+			return nil, err
+		}
 	}
 	return nil, nil
 }

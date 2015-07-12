@@ -31,5 +31,13 @@ var _ = Describe("Usagereport", func() {
 			_, err := cmd.getOrgs()
 			Expect(err).ToNot(BeNil())
 		})
+
+		It("sholud return an error if cf curl to the quota url fails", func() {
+			fakeAPI.GetOrgsReturns([]apihelper.Organization{apihelper.Organization{}}, nil)
+			fakeAPI.GetOrgMemoryUsageReturns(float64(1024), nil)
+			fakeAPI.GetQuotaMemoryLimitReturns(0, errors.New("Bad Things"))
+			_, err := cmd.getOrgs()
+			Expect(err).ToNot(BeNil())
+		})
 	})
 })

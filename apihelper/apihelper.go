@@ -7,10 +7,10 @@ import (
 
 //Organization representation
 type Organization struct {
-	url       string
-	name      string
-	quotaURL  string
-	spacesURL string
+	URL       string
+	Name      string
+	QuotaURL  string
+	SpacesURL string
 }
 
 //CFAPIHelper to wrap cf curl results
@@ -38,10 +38,10 @@ func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) 
 		metadata := theOrg["metadata"].(map[string]interface{})
 		orgs = append(orgs,
 			Organization{
-				name:      entity["name"].(string),
-				url:       metadata["url"].(string),
-				quotaURL:  entity["quota_definition_url"].(string),
-				spacesURL: entity["spaces_url"].(string),
+				Name:      entity["name"].(string),
+				URL:       metadata["url"].(string),
+				QuotaURL:  entity["quota_definition_url"].(string),
+				SpacesURL: entity["spaces_url"].(string),
 			})
 	}
 	return orgs, nil
@@ -58,7 +58,7 @@ func (api *APIHelper) GetQuotaMemoryLimit(cli plugin.CliConnection, quotaURL str
 
 //GetOrgMemoryUsage returns teh amount of memory (in MB) that the org is consuming
 func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organization) (float64, error) {
-	usageJSON, err := cfcurl.Curl(cli, org.url+"/memory_usage")
+	usageJSON, err := cfcurl.Curl(cli, org.URL+"/memory_usage")
 	if nil != err {
 		return 0, err
 	}

@@ -54,7 +54,7 @@ var _ = Describe("UsageReport", func() {
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsJSON, nil)
 			orgs, _ := api.GetOrgs(fakeCliConnection)
 			org := orgs[0]
-			Expect(org.url).To(Equal("/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd"))
+			Expect(org.URL).To(Equal("/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd"))
 		})
 
 		It("calls /v2/orgs", func() {
@@ -104,7 +104,7 @@ var _ = Describe("UsageReport", func() {
 		})
 
 		It("Shoudl return the memory usage", func() {
-			org.url = "/v2/organizations/1234/"
+			org.URL = "/v2/organizations/1234"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(usageJSON, nil)
 			usage, _ := api.GetOrgMemoryUsage(fakeCliConnection, org)
 			Expect(usage).To(Equal(float64(512)))
