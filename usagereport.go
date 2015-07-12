@@ -1,10 +1,14 @@
 package main
 
-import "github.com/cloudfoundry/cli/plugin"
+import (
+	"github.com/cloudfoundry/cli/plugin"
+	"github.com/krujos/usagereport-plugin/apihelper"
+)
 
 //UsageReportCmd the plugin
 type UsageReportCmd struct {
-	apiHelper CFAPIHelper
+	apiHelper apihelper.CFAPIHelper
+	cli       plugin.CliConnection
 }
 
 type org struct {
@@ -40,6 +44,10 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 }
 
 func (cmd *UsageReportCmd) getOrgs() (*org, error) {
+	_, err := cmd.apiHelper.GetOrgs(cmd.cli)
+	if nil != err {
+		return nil, err
+	}
 	return nil, nil
 }
 
