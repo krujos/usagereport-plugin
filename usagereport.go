@@ -73,6 +73,11 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 			return nil, err
 		}
 
+		_, err = cmd.apiHelper.GetOrgSpaces(cmd.cli, o.SpacesURL)
+		if nil != err {
+			return nil, err
+		}
+
 		orgs = append(orgs, org{
 			name:        o.Name,
 			memoryQuota: quota,

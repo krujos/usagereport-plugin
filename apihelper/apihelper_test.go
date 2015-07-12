@@ -113,37 +113,32 @@ var _ = Describe("UsageReport", func() {
 
 	Describe("get spaces", func() {
 		var spacesJSON []string
-		var org Organization
 
 		BeforeEach(func() {
 			spacesJSON = slurp("test-data/spaces.json")
 		})
 
 		It("should error when the the spaces url fails", func() {
-			org.SpacesURL = "/v2/organizations/12345/spaces"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("Bad Things"))
-			_, err := api.GetOrgSpaces(fakeCliConnection, org)
+			_, err := api.GetOrgSpaces(fakeCliConnection, "/v2/organizations/12345/spaces")
 			Expect(err).ToNot(BeNil())
 		})
 
 		It("should return two spaces", func() {
-			org.SpacesURL = "/whatever"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(spacesJSON, nil)
-			spaces, _ := api.GetOrgSpaces(fakeCliConnection, org)
+			spaces, _ := api.GetOrgSpaces(fakeCliConnection, "/v2/organizations/12345/spaces")
 			Expect(len(spaces)).To(Equal(2))
 		})
 
 		It("should have name jdk-space", func() {
-			org.SpacesURL = "/whatever"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(spacesJSON, nil)
-			spaces, _ := api.GetOrgSpaces(fakeCliConnection, org)
+			spaces, _ := api.GetOrgSpaces(fakeCliConnection, "/v2/organizations/12345/spaces")
 			Expect(spaces[0].Name).To(Equal("jdk-space"))
 			Expect(spaces[0].AppsURL).To(Equal("/v2/spaces/81c310ed-d258-48d7-a57a-6522d93a4217/apps"))
 		})
 	})
 
 	Describe("get apps", func() {
-		var space Space
 		var appsJSON []string
 
 		BeforeEach(func() {
@@ -151,16 +146,14 @@ var _ = Describe("UsageReport", func() {
 		})
 
 		It("should return an error when the apps url fails", func() {
-			space.AppsURL = "/v2/whateverapps"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("Bad Things"))
-			_, err := api.GetSpaceApps(fakeCliConnection, space)
+			_, err := api.GetSpaceApps(fakeCliConnection, "/v2/whateverapps")
 			Expect(err).ToNot(BeNil())
 		})
 
 		It("should return one app with 1 instance and 1024 mb of ram", func() {
-			space.AppsURL = "/v2/wutever"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(appsJSON, nil)
-			apps, _ := api.GetSpaceApps(fakeCliConnection, space)
+			apps, _ := api.GetSpaceApps(fakeCliConnection, "/v2/whateverapps")
 			Expect(len(apps)).To(Equal(1))
 			Expect(apps[0].Instances).To(Equal(float64(1)))
 			Expect(apps[0].RAM).To(Equal(float64(1024)))

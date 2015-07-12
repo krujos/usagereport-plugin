@@ -40,11 +40,18 @@ var _ = Describe("Usagereport", func() {
 			_, err := cmd.getOrgs()
 			Expect(err).ToNot(BeNil())
 		})
+
+		It("should return an error if cf curl to get org spaces fails", func() {
+			fakeAPI.GetOrgSpacesReturns(nil, errors.New("Bad Things"))
+			_, err := cmd.getOrgs()
+			Expect(err).ToNot(BeNil())
+			Expect(fakeAPI.GetOrgSpacesCallCount()).To(Equal(1))
+		})
 	})
 
 	Describe("Get org composes the values correctly", func() {
 		org := apihelper.Organization{
-			URL:      "/v2/orginzations/1234",
+			URL:      "/v2/organizations/1234",
 			QuotaURL: "/v2/quotas/2345",
 		}
 
@@ -58,6 +65,14 @@ var _ = Describe("Usagereport", func() {
 			org := orgs[0]
 			Expect(org.memoryQuota).To(Equal(float64(2)))
 			Expect(org.memoryUsage).To(Equal(float64(1)))
+		})
+
+		It("Should return an org with two spaces", func() {
+			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
+			fakeAPI.GetOrgSpacesReturns(
+				[]apihelper.Space{apihelper.Space{}, apihelper.Space{}}, nil)
+			orgs, _ := cmd.getOrgs()
+			Expect(len(orgs[0].spaces)).To(Equal(1))
 		})
 	})
 })

@@ -30,8 +30,8 @@ type CFAPIHelper interface {
 	GetOrgs(plugin.CliConnection) ([]Organization, error)
 	GetQuotaMemoryLimit(plugin.CliConnection, string) (float64, error)
 	GetOrgMemoryUsage(plugin.CliConnection, Organization) (float64, error)
-	GetOrgSpaces(plugin.CliConnection, Organization) ([]Space, error)
-	GetSpaceApps(plugin.CliConnection, Space) ([]App, error)
+	GetOrgSpaces(plugin.CliConnection, string) ([]Space, error)
+	GetSpaceApps(plugin.CliConnection, string) ([]App, error)
 }
 
 //APIHelper implementation
@@ -80,8 +80,8 @@ func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organizati
 }
 
 //GetOrgSpaces returns the spaces in an org.
-func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, org Organization) ([]Space, error) {
-	spacesJSON, err := cfcurl.Curl(cli, org.SpacesURL)
+func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, spacesURL string) ([]Space, error) {
+	spacesJSON, err := cfcurl.Curl(cli, spacesURL)
 	if nil != err {
 		return nil, err
 	}
@@ -99,8 +99,8 @@ func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, org Organization) (
 }
 
 //GetSpaceApps returns the apps in a space
-func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, space Space) ([]App, error) {
-	appsJSON, err := cfcurl.Curl(cli, space.AppsURL)
+func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, spaceURL string) ([]App, error) {
+	appsJSON, err := cfcurl.Curl(cli, spaceURL)
 	if nil != err {
 		return nil, err
 	}
