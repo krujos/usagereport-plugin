@@ -49,6 +49,7 @@ var _ = Describe("Usagereport", func() {
 				Expect(err).ToNot(BeNil())
 				Expect(fakeAPI.GetOrgSpacesCallCount()).To(Equal(1))
 			})
+
 			It("Should return an error if cf curl to get the apps in a space fails", func() {
 				fakeAPI.GetOrgSpacesReturns(
 					[]apihelper.Space{apihelper.Space{AppsURL: "/v2/apps"}}, nil)
@@ -57,7 +58,6 @@ var _ = Describe("Usagereport", func() {
 				Expect(err).ToNot(BeNil())
 				Expect(fakeAPI.GetSpaceAppsCallCount()).To(Equal(1))
 			})
-
 		})
 
 	})
