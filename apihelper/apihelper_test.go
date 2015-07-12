@@ -57,6 +57,13 @@ var _ = Describe("UsageReport", func() {
 			Expect(org.url).To(Equal("/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd"))
 		})
 
+		It("calls /v2/orgs", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsJSON, nil)
+			api.GetOrgs(fakeCliConnection)
+			args := fakeCliConnection.CliCommandWithoutTerminalOutputArgsForCall(0)
+			Expect(args[1]).To(Equal("/v2/organizations"))
+		})
+
 	})
 
 	Describe("Get quota memory limit", func() {
