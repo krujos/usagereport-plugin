@@ -141,4 +141,15 @@ var _ = Describe("UsageReport", func() {
 			Expect(spaces[0].AppsURL).To(Equal("/v2/spaces/81c310ed-d258-48d7-a57a-6522d93a4217/apps"))
 		})
 	})
+
+	Describe("get apps", func() {
+		var space Space
+
+		It("should return an error when the apps url fails", func() {
+			space.AppsURL = "/v2/whateverapps"
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("Bad Things"))
+			_, err := api.GetSpaceApps(fakeCliConnection, space)
+			Expect(err).ToNot(BeNil())
+		})
+	})
 })

@@ -19,12 +19,19 @@ type Space struct {
 	AppsURL string
 }
 
+//App representation
+type App struct {
+	Instances float64
+	RAM       float64
+}
+
 //CFAPIHelper to wrap cf curl results
 type CFAPIHelper interface {
 	GetOrgs(plugin.CliConnection) ([]Organization, error)
 	GetQuotaMemoryLimit(plugin.CliConnection, string) (float64, error)
 	GetOrgMemoryUsage(plugin.CliConnection, Organization) (float64, error)
 	GetOrgSpaces(plugin.CliConnection, Organization) ([]Space, error)
+	GetSpaceApps(plugin.CliConnection, Space) ([]App, error)
 }
 
 //APIHelper implementation
@@ -89,4 +96,13 @@ func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, org Organization) (
 			})
 	}
 	return spaces, nil
+}
+
+//GetSpaceApps returns the apps in a space
+func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, space Space) ([]App, error) {
+	_, err := cfcurl.Curl(cli, space.AppsURL)
+	if nil != err {
+		return nil, err
+	}
+	return nil, nil
 }
