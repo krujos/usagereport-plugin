@@ -27,5 +27,5 @@ build:
         name: go test
         code: |
           go get github.com/onsi/ginkgo
-		  go get github.com/onsi/gomega
+          go get github.com/onsi/gomega
           ginkgo -r 

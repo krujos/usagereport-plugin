@@ -1,0 +1,25 @@
+{
+	"ImportPath": "github.com/krujos/usagereport-plugin",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/cloudfoundry/cli/plugin",
+			"Comment": "v6.11.3-16-g4a108fd",
+			"Rev": "4a108fd21d6633b250f6d9f46e870967cae96ac0"
+		},
+		{
+			"ImportPath": "github.com/krujos/cfcurl",
+			"Rev": "320854091a119f220102ba356e507c361562b221"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.2.0-beta-17-gc5c7614",
+			"Rev": "c5c761488350e56a28c4a91da87e5db7020bedc8"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-48-g766f404",
+			"Rev": "766f4042b942146e90594d145c5071fa92c0aa9a"
+		}
+	]
+}
