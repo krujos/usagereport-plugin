@@ -1,7 +1,7 @@
 # UsageReport Plugin
-This CF CLI Plugin to shows memory consumption and application instances for each org and space you have permission to access. 
+This CF CLI Plugin to shows memory consumption and application instances for each org and space you have permission to access.
 
-[![wercker status](https://app.wercker.com/status/f5f8d90193968cce6f5d60583d85be3c/s "wercker status")](https://app.wercker.com/project/bykey/f5f8d90193968cce6f5d60583d85be3c)
+[![wercker status](https://app.wercker.com/status/8881b5530809e3636080d2df6433aada/s/master "wercker status")](https://app.wercker.com/project/bykey/8881b5530809e3636080d2df6433aada)
 
 
 #Usage
@@ -29,15 +29,15 @@ Org pcfp is using 5120 MB of 102400 MB.
 You are running 17 apps in all orgs, with a total of 22 instances.
 ```
 
-##Installation 
+##Installation
 #####Install from CLI (this will not work until [#34](https://github.com/cloudfoundry-incubator/cli-plugin-repo/pull/34) is merged)
 
   ```
   $ cf add-plugin-repo CF-Community http://plugins.cloudfoundry.org/
   $ cf install-plugin usagereport -r CF-Community
   ```
-  
-  
+
+
 #####Install from Source (need to have [Go](http://golang.org/dl/) installed)
   ```
   $ go get github.com/cloudfoundry/cli
