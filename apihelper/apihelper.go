@@ -40,7 +40,6 @@ type APIHelper struct{}
 //GetOrgs returns a struct that represents critical fields in the JSON
 func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) {
 	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
-
 	if nil != err {
 		return nil, err
 	}

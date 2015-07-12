@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/usagereport-plugin/apihelper"
 )
@@ -20,6 +23,7 @@ type org struct {
 
 type space struct {
 	apps []app
+	name string
 }
 
 type app struct {
@@ -49,8 +53,39 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 }
 
 //UsageReportCommand doer
-func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []string) {
-	//Do the things
+func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
+	fmt.Println("Gathering usage information")
+
+	if nil == cmd.cli {
+		fmt.Println("ERROR: CLI Connection is nil!")
+		os.Exit(1)
+	}
+
+	orgs, err := cmd.getOrgs()
+	if nil != err {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	totalApps := float64(0)
+	totalInstances := float64(0)
+	for _, org := range orgs {
+		fmt.Printf("Org %s is using %fMB of %fMB\n", org.name, org.memoryUsage, org.memoryQuota)
+		for _, space := range org.spaces {
+			consumed := float64(0)
+			instances := float64(0)
+			for _, app := range space.apps {
+				consumed += (app.instances * app.ram)
+				instances += app.instances
+			}
+			fmt.Printf("\tSpace %s is using %f MB memory\n", space.name, consumed)
+			fmt.Printf("\t\trunning %d apps with %f instances\n", len(space.apps), instances)
+			totalInstances += instances
+			totalApps += float64(len(space.apps))
+		}
+	}
+	fmt.Printf("You are running %f apps in all orgs, with a total of %f instances\n",
+		totalApps, totalInstances)
 }
 
 func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
@@ -62,17 +97,14 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 	var orgs = []org{}
 
 	for _, o := range rawOrgs {
-
 		usage, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, o)
 		if nil != err {
 			return nil, err
 		}
-
 		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, o.QuotaURL)
 		if nil != err {
 			return nil, err
 		}
-
 		spaces, err := cmd.getSpaces(o.SpacesURL)
 		if nil != err {
 			return nil, err
@@ -99,7 +131,12 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
 		if nil != err {
 			return nil, err
 		}
-		spaces = append(spaces, space{apps: apps})
+		spaces = append(spaces,
+			space{
+				apps: apps,
+				name: s.Name,
+			},
+		)
 	}
 	return spaces, nil
 }
@@ -122,7 +159,9 @@ func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
 //Run runs the plugin
 func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 	if args[0] == "usage-report" {
-		cmd.UsageReportCommand(cli, args)
+		cmd.apiHelper = &apihelper.APIHelper{}
+		cmd.cli = cli
+		cmd.UsageReportCommand(args)
 	}
 }
 
