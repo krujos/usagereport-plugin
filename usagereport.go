@@ -36,9 +36,9 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
 		Name: "usage-report",
 		Version: plugin.VersionType{
-			Major: 0,
+			Major: 1,
 			Minor: 0,
-			Build: 1,
+			Build: 0,
 		},
 		Commands: []plugin.Command{
 			{

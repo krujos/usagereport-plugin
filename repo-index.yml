@@ -11,11 +11,11 @@
   homepage: http://github.com/krujos/usagereport-plugin
   binaries:
   - platform: osx
-    url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/osx/scaleover-plugin
+    url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/osx/usagereport-plugin
     checksum: osx-sha1
   - platform: win64
-    url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/win64/scaleover-plugin.exe
+    url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/win64/usagereport-plugin.exe
     checksum: win64-sha1
   - platform: linux64
-    url: https://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/linux64/scaleover-plugin
+    url: https://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/linux64/usagereport-plugin
     checksum: linux64-sha1
