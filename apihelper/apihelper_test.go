@@ -144,12 +144,26 @@ var _ = Describe("UsageReport", func() {
 
 	Describe("get apps", func() {
 		var space Space
+		var appsJSON []string
+
+		BeforeEach(func() {
+			appsJSON = slurp("test-data/apps.json")
+		})
 
 		It("should return an error when the apps url fails", func() {
 			space.AppsURL = "/v2/whateverapps"
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(nil, errors.New("Bad Things"))
 			_, err := api.GetSpaceApps(fakeCliConnection, space)
 			Expect(err).ToNot(BeNil())
+		})
+
+		It("should return one app with 1 instance and 1024 mb of ram", func() {
+			space.AppsURL = "/v2/wutever"
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(appsJSON, nil)
+			apps, _ := api.GetSpaceApps(fakeCliConnection, space)
+			Expect(len(apps)).To(Equal(1))
+			Expect(apps[0].Instances).To(Equal(float64(1)))
+			Expect(apps[0].RAM).To(Equal(float64(1024)))
 		})
 	})
 })

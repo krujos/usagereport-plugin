@@ -100,9 +100,19 @@ func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, org Organization) (
 
 //GetSpaceApps returns the apps in a space
 func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, space Space) ([]App, error) {
-	_, err := cfcurl.Curl(cli, space.AppsURL)
+	appsJSON, err := cfcurl.Curl(cli, space.AppsURL)
 	if nil != err {
 		return nil, err
 	}
-	return nil, nil
+	apps := []App{}
+	for _, a := range appsJSON["resources"].([]interface{}) {
+		theApp := a.(map[string]interface{})
+		entity := theApp["entity"].(map[string]interface{})
+		apps = append(apps,
+			App{
+				Instances: entity["instances"].(float64),
+				RAM:       entity["memory"].(float64),
+			})
+	}
+	return apps, nil
 }
