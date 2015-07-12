@@ -1,0 +1,56 @@
+{
+   "total_results": 2,
+   "total_pages": 1,
+   "prev_url": null,
+   "next_url": null,
+   "resources": [
+      {
+         "metadata": {
+            "guid": "b1a23fd6-ac8d-4304-a3b4-815745417acd",
+            "url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd",
+            "created_at": "2015-07-07T00:18:05Z",
+            "updated_at": null
+         },
+         "entity": {
+            "name": "jdk-org",
+            "billing_enabled": false,
+            "quota_definition_guid": "2066e394-09e2-4fa1-a450-233b1198737f",
+            "status": "active",
+            "quota_definition_url": "/v2/quota_definitions/2066e394-09e2-4fa1-a450-233b1198737f",
+            "spaces_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/spaces",
+            "domains_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/domains",
+            "private_domains_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/private_domains",
+            "users_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/users",
+            "managers_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/managers",
+            "billing_managers_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/billing_managers",
+            "auditors_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/auditors",
+            "app_events_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/app_events",
+            "space_quota_definitions_url": "/v2/organizations/b1a23fd6-ac8d-4304-a3b4-815745417acd/space_quota_definitions"
+         }
+      },
+      {
+         "metadata": {
+            "guid": "536a6736-0d89-4972-9e8c-0fbbb6802721",
+            "url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721",
+            "created_at": "2015-07-10T22:07:27Z",
+            "updated_at": null
+         },
+         "entity": {
+            "name": "test-org",
+            "billing_enabled": false,
+            "quota_definition_guid": "2066e394-09e2-4fa1-a450-233b1198737f",
+            "status": "active",
+            "quota_definition_url": "/v2/quota_definitions/2066e394-09e2-4fa1-a450-233b1198737f",
+            "spaces_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/spaces",
+            "domains_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/domains",
+            "private_domains_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/private_domains",
+            "users_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/users",
+            "managers_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/managers",
+            "billing_managers_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/billing_managers",
+            "auditors_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/auditors",
+            "app_events_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/app_events",
+            "space_quota_definitions_url": "/v2/organizations/536a6736-0d89-4972-9e8c-0fbbb6802721/space_quota_definitions"
+         }
+      }
+   ]
+}

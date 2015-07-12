@@ -1,4 +1,4 @@
-package main
+package apihelper_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestUsagePlugin(t *testing.T) {
+func TestApihelper(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "UsagePlugin Suite")
+	RunSpecs(t, "Apihelper Suite")
 }

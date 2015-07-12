@@ -1,0 +1,54 @@
+{
+   "total_results": 1,
+   "total_pages": 1,
+   "prev_url": null,
+   "next_url": null,
+   "resources": [
+      {
+         "metadata": {
+            "guid": "17ff8ef2-5f6a-4983-a23c-d52e785885d0",
+            "url": "/v2/apps/17ff8ef2-5f6a-4983-a23c-d52e785885d0",
+            "created_at": "2015-05-29T22:13:38Z",
+            "updated_at": "2015-06-01T00:06:21Z"
+         },
+         "entity": {
+            "name": "ws",
+            "production": false,
+            "space_guid": "2fd3c1e0-3058-4eb1-be22-5c5cb5aa44f1",
+            "stack_guid": "86205f38-84fc-4bc2-b2b8-af7f55669f04",
+            "buildpack": null,
+            "detected_buildpack": "Node.js",
+            "environment_json": {
+               "redacted_message": "[PRIVATE DATA HIDDEN]"
+            },
+            "memory": 1024,
+            "instances": 1,
+            "disk_quota": 1024,
+            "state": "STARTED",
+            "version": "3ef87806-abb4-4e93-9f11-e7ac931cb08a",
+            "command": null,
+            "console": false,
+            "debug": null,
+            "staging_task_id": "69b2432458294a2181c3a47f4c1472e4",
+            "package_state": "STAGED",
+            "health_check_type": "port",
+            "health_check_timeout": null,
+            "staging_failed_reason": null,
+            "staging_failed_description": null,
+            "diego": false,
+            "docker_image": null,
+            "package_updated_at": "2015-06-01T00:06:02Z",
+            "detected_start_command": "node main.js",
+            "enable_ssh": true,
+            "docker_credentials_json": {
+               "redacted_message": "[PRIVATE DATA HIDDEN]"
+            },
+            "space_url": "/v2/spaces/2fd3c1e0-3058-4eb1-be22-5c5cb5aa44f1",
+            "stack_url": "/v2/stacks/86205f38-84fc-4bc2-b2b8-af7f55669f04",
+            "events_url": "/v2/apps/17ff8ef2-5f6a-4983-a23c-d52e785885d0/events",
+            "service_bindings_url": "/v2/apps/17ff8ef2-5f6a-4983-a23c-d52e785885d0/service_bindings",
+            "routes_url": "/v2/apps/17ff8ef2-5f6a-4983-a23c-d52e785885d0/routes"
+         }
+      }
+   ]
+}
