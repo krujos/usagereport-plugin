@@ -44,9 +44,16 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 }
 
 func (cmd *UsageReportCmd) getOrgs() (*org, error) {
-	_, err := cmd.apiHelper.GetOrgs(cmd.cli)
+	orgs, err := cmd.apiHelper.GetOrgs(cmd.cli)
 	if nil != err {
 		return nil, err
+	}
+
+	for _, org := range orgs {
+		_, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, org)
+		if nil != err {
+			return nil, err
+		}
 	}
 	return nil, nil
 }

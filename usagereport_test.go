@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 
+	"github.com/krujos/usagereport-plugin/apihelper"
 	"github.com/krujos/usagereport-plugin/apihelper/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,6 +21,13 @@ var _ = Describe("Usagereport", func() {
 
 		It("should return an error if cf curl /v2/organizations fails", func() {
 			fakeAPI.GetOrgsReturns(nil, errors.New("Bad Things"))
+			_, err := cmd.getOrgs()
+			Expect(err).ToNot(BeNil())
+		})
+
+		It("should return an error if cf curl /v2/organizations/{guid}/memory_usage fails", func() {
+			fakeAPI.GetOrgsReturns([]apihelper.Organization{apihelper.Organization{}}, nil)
+			fakeAPI.GetOrgMemoryUsageReturns(0, errors.New("Bad Things"))
 			_, err := cmd.getOrgs()
 			Expect(err).ToNot(BeNil())
 		})
