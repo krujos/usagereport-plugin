@@ -79,8 +79,8 @@ var _ = Describe("Usagereport", func() {
 			Expect(err).To(BeNil())
 			Expect(len(orgs)).To(Equal(1))
 			org := orgs[0]
-			Expect(org.memoryQuota).To(Equal(float64(2)))
-			Expect(org.memoryUsage).To(Equal(float64(1)))
+			Expect(org.memoryQuota).To(Equal(2))
+			Expect(org.memoryUsage).To(Equal(1))
 		})
 
 		It("Should return an org with 1 space", func() {

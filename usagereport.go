@@ -16,8 +16,8 @@ type UsageReportCmd struct {
 
 type org struct {
 	name        string
-	memoryQuota float64
-	memoryUsage float64
+	memoryQuota int
+	memoryUsage int
 	spaces      []space
 }
 
@@ -27,8 +27,8 @@ type space struct {
 }
 
 type app struct {
-	ram       float64
-	instances float64
+	ram       int
+	instances int
 }
 
 //GetMetadata returns metatada
@@ -67,24 +67,24 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 		os.Exit(1)
 	}
 
-	totalApps := float64(0)
-	totalInstances := float64(0)
+	totalApps := 0
+	totalInstances := 0
 	for _, org := range orgs {
-		fmt.Printf("Org %s is using %fMB of %fMB\n", org.name, org.memoryUsage, org.memoryQuota)
+		fmt.Printf("Org %s is using %dMB of %dMB\n", org.name, org.memoryUsage, org.memoryQuota)
 		for _, space := range org.spaces {
-			consumed := float64(0)
-			instances := float64(0)
+			consumed := 0
+			instances := 0
 			for _, app := range space.apps {
-				consumed += (app.instances * app.ram)
-				instances += app.instances
+				consumed += int(app.instances * app.ram)
+				instances += int(app.instances)
 			}
-			fmt.Printf("\tSpace %s is using %f MB memory\n", space.name, consumed)
-			fmt.Printf("\t\trunning %d apps with %f instances\n", len(space.apps), instances)
+			fmt.Printf("\tSpace %s is using %d MB memory\n", space.name, consumed)
+			fmt.Printf("\t\trunning %d apps with %d instances\n", len(space.apps), instances)
 			totalInstances += instances
-			totalApps += float64(len(space.apps))
+			totalApps += len(space.apps)
 		}
 	}
-	fmt.Printf("You are running %f apps in all orgs, with a total of %f instances\n",
+	fmt.Printf("You are running %d apps in all orgs, with a total of %d instances\n",
 		totalApps, totalInstances)
 }
 
@@ -112,8 +112,8 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 
 		orgs = append(orgs, org{
 			name:        o.Name,
-			memoryQuota: quota,
-			memoryUsage: usage,
+			memoryQuota: int(quota),
+			memoryUsage: int(usage),
 			spaces:      spaces,
 		})
 	}
@@ -149,8 +149,8 @@ func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
 	var apps = []app{}
 	for _, a := range rawApps {
 		apps = append(apps, app{
-			instances: a.Instances,
-			ram:       a.RAM,
+			instances: int(a.Instances),
+			ram:       int(a.RAM),
 		})
 	}
 	return apps, nil
