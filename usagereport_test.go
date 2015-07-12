@@ -26,27 +26,31 @@ var _ = Describe("Usagereport", func() {
 			Expect(err).ToNot(BeNil())
 		})
 
-		It("should return an error if cf curl /v2/organizations/{guid}/memory_usage fails", func() {
-			fakeAPI.GetOrgsReturns([]apihelper.Organization{apihelper.Organization{}}, nil)
-			fakeAPI.GetOrgMemoryUsageReturns(0, errors.New("Bad Things"))
-			_, err := cmd.getOrgs()
-			Expect(err).ToNot(BeNil())
+		Context("good org bad other thigns", func() {
+			BeforeEach(func() {
+				fakeAPI.GetOrgsReturns([]apihelper.Organization{apihelper.Organization{}}, nil)
+
+			})
+			It("should return an error if cf curl /v2/organizations/{guid}/memory_usage fails", func() {
+				fakeAPI.GetOrgMemoryUsageReturns(0, errors.New("Bad Things"))
+				_, err := cmd.getOrgs()
+				Expect(err).ToNot(BeNil())
+			})
+
+			It("sholud return an error if cf curl to the quota url fails", func() {
+				fakeAPI.GetQuotaMemoryLimitReturns(0, errors.New("Bad Things"))
+				_, err := cmd.getOrgs()
+				Expect(err).ToNot(BeNil())
+			})
+
+			It("should return an error if cf curl to get org spaces fails", func() {
+				fakeAPI.GetOrgSpacesReturns(nil, errors.New("Bad Things"))
+				_, err := cmd.getOrgs()
+				Expect(err).ToNot(BeNil())
+				Expect(fakeAPI.GetOrgSpacesCallCount()).To(Equal(1))
+			})
 		})
 
-		It("sholud return an error if cf curl to the quota url fails", func() {
-			fakeAPI.GetOrgsReturns([]apihelper.Organization{apihelper.Organization{}}, nil)
-			fakeAPI.GetOrgMemoryUsageReturns(float64(1024), nil)
-			fakeAPI.GetQuotaMemoryLimitReturns(0, errors.New("Bad Things"))
-			_, err := cmd.getOrgs()
-			Expect(err).ToNot(BeNil())
-		})
-
-		It("should return an error if cf curl to get org spaces fails", func() {
-			fakeAPI.GetOrgSpacesReturns(nil, errors.New("Bad Things"))
-			_, err := cmd.getOrgs()
-			Expect(err).ToNot(BeNil())
-			Expect(fakeAPI.GetOrgSpacesCallCount()).To(Equal(1))
-		})
 	})
 
 	Describe("Get org composes the values correctly", func() {
