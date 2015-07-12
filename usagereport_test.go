@@ -71,12 +71,16 @@ var _ = Describe("Usagereport", func() {
 			Expect(org.memoryUsage).To(Equal(float64(1)))
 		})
 
-		It("Should return an org with two spaces", func() {
+		It("Should return an org with 1 space", func() {
 			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{apihelper.Space{}, apihelper.Space{}}, nil)
 			orgs, _ := cmd.getOrgs()
-			Expect(len(orgs[0].spaces)).To(Equal(1))
+			Expect(len(orgs[0].spaces)).To(Equal(2))
+		})
+
+		It("Should not choke on an org with no spaces", func() {
+			Fail("NYI")
 		})
 	})
 })

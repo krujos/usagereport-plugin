@@ -73,7 +73,7 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 			return nil, err
 		}
 
-		_, err = cmd.apiHelper.GetOrgSpaces(cmd.cli, o.SpacesURL)
+		spaces, err := cmd.getSpaces(o.SpacesURL)
 		if nil != err {
 			return nil, err
 		}
@@ -82,13 +82,24 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 			name:        o.Name,
 			memoryQuota: quota,
 			memoryUsage: usage,
+			spaces:      spaces,
 		})
 	}
 	return orgs, nil
 }
 
-func (cmd *UsageReportCmd) getSpaces(org org) ([]space, error) {
-	return nil, nil
+func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
+	rawSpaces, err := cmd.apiHelper.GetOrgSpaces(cmd.cli, spaceURL)
+	if nil != err {
+		return nil, err
+	}
+	var spaces = []space{}
+	for range rawSpaces {
+		//TODO Insert values form spaces
+		spaces = append(spaces, space{})
+	}
+
+	return spaces, nil
 }
 
 //Run runs the plugin
