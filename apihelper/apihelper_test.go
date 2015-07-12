@@ -125,5 +125,12 @@ var _ = Describe("UsageReport", func() {
 			_, err := api.GetOrgSpaces(fakeCliConnection, org)
 			Expect(err).ToNot(BeNil())
 		})
+
+		It("Should return two spaces", func() {
+			org.SpacesURL = "/whatever"
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(spacesJSON, nil)
+			spaces, _ := api.GetOrgSpaces(fakeCliConnection, org)
+			Expect(len(spaces)).To(Equal(2))
+		})
 	})
 })

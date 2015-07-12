@@ -74,9 +74,19 @@ func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organizati
 
 //GetOrgSpaces returns the spaces in an org.
 func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, org Organization) ([]Space, error) {
-	_, err := cfcurl.Curl(cli, org.SpacesURL)
+	spacesJSON, err := cfcurl.Curl(cli, org.SpacesURL)
 	if nil != err {
 		return nil, err
 	}
-	return nil, nil
+	spaces := []Space{}
+	for _, s := range spacesJSON["resources"].([]interface{}) {
+		theSpace := s.(map[string]interface{})
+		entity := theSpace["entity"].(map[string]interface{})
+		spaces = append(spaces,
+			Space{
+				AppsURL: entity["apps_url"].(string),
+				Name:    entity["name"].(string),
+			})
+	}
+	return spaces, nil
 }
