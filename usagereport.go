@@ -70,7 +70,7 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 	totalApps := 0
 	totalInstances := 0
 	for _, org := range orgs {
-		fmt.Printf("Org %s is using %d MB of %d MB\n", org.name, org.memoryUsage, org.memoryQuota)
+		fmt.Printf("Org %s is using %d MB of %d MB.\n", org.name, org.memoryUsage, org.memoryQuota)
 		for _, space := range org.spaces {
 			consumed := 0
 			instances := 0
@@ -78,15 +78,13 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 				consumed += int(app.instances * app.ram)
 				instances += int(app.instances)
 			}
-			fmt.Printf("\tSpace %s is using %d MB memory (%d%%) of org quota\n",
-				space.name, consumed, (100 * consumed / org.memoryQuota))
-			// fmt.Printf("\t\trunning %d apps with %d instances \n",
-			// 	len(space.apps), instances)
+			fmt.Printf("\tSpace %s is using %d MB memory (%d%%) of org quota. %d apps %d instances.\n",
+				space.name, consumed, (100 * consumed / org.memoryQuota), len(space.apps), instances)
 			totalInstances += instances
 			totalApps += len(space.apps)
 		}
 	}
-	fmt.Printf("You are running %d apps in all orgs, with a total of %d instances\n",
+	fmt.Printf("You are running %d apps in all orgs, with a total of %d instances.\n",
 		totalApps, totalInstances)
 }
 
