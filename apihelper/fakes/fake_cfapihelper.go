@@ -38,6 +38,26 @@ type FakeCFAPIHelper struct {
 		result1 float64
 		result2 error
 	}
+	GetOrgSpacesStub        func(plugin.CliConnection, apihelper.Organization) ([]apihelper.Space, error)
+	getOrgSpacesMutex       sync.RWMutex
+	getOrgSpacesArgsForCall []struct {
+		arg1 plugin.CliConnection
+		arg2 apihelper.Organization
+	}
+	getOrgSpacesReturns struct {
+		result1 []apihelper.Space
+		result2 error
+	}
+	GetSpaceAppsStub        func(plugin.CliConnection, apihelper.Space) ([]apihelper.App, error)
+	getSpaceAppsMutex       sync.RWMutex
+	getSpaceAppsArgsForCall []struct {
+		arg1 plugin.CliConnection
+		arg2 apihelper.Space
+	}
+	getSpaceAppsReturns struct {
+		result1 []apihelper.App
+		result2 error
+	}
 }
 
 func (fake *FakeCFAPIHelper) GetOrgs(arg1 plugin.CliConnection) ([]apihelper.Organization, error) {
@@ -137,6 +157,74 @@ func (fake *FakeCFAPIHelper) GetOrgMemoryUsageReturns(result1 float64, result2 e
 	fake.GetOrgMemoryUsageStub = nil
 	fake.getOrgMemoryUsageReturns = struct {
 		result1 float64
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCFAPIHelper) GetOrgSpaces(arg1 plugin.CliConnection, arg2 apihelper.Organization) ([]apihelper.Space, error) {
+	fake.getOrgSpacesMutex.Lock()
+	fake.getOrgSpacesArgsForCall = append(fake.getOrgSpacesArgsForCall, struct {
+		arg1 plugin.CliConnection
+		arg2 apihelper.Organization
+	}{arg1, arg2})
+	fake.getOrgSpacesMutex.Unlock()
+	if fake.GetOrgSpacesStub != nil {
+		return fake.GetOrgSpacesStub(arg1, arg2)
+	} else {
+		return fake.getOrgSpacesReturns.result1, fake.getOrgSpacesReturns.result2
+	}
+}
+
+func (fake *FakeCFAPIHelper) GetOrgSpacesCallCount() int {
+	fake.getOrgSpacesMutex.RLock()
+	defer fake.getOrgSpacesMutex.RUnlock()
+	return len(fake.getOrgSpacesArgsForCall)
+}
+
+func (fake *FakeCFAPIHelper) GetOrgSpacesArgsForCall(i int) (plugin.CliConnection, apihelper.Organization) {
+	fake.getOrgSpacesMutex.RLock()
+	defer fake.getOrgSpacesMutex.RUnlock()
+	return fake.getOrgSpacesArgsForCall[i].arg1, fake.getOrgSpacesArgsForCall[i].arg2
+}
+
+func (fake *FakeCFAPIHelper) GetOrgSpacesReturns(result1 []apihelper.Space, result2 error) {
+	fake.GetOrgSpacesStub = nil
+	fake.getOrgSpacesReturns = struct {
+		result1 []apihelper.Space
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCFAPIHelper) GetSpaceApps(arg1 plugin.CliConnection, arg2 apihelper.Space) ([]apihelper.App, error) {
+	fake.getSpaceAppsMutex.Lock()
+	fake.getSpaceAppsArgsForCall = append(fake.getSpaceAppsArgsForCall, struct {
+		arg1 plugin.CliConnection
+		arg2 apihelper.Space
+	}{arg1, arg2})
+	fake.getSpaceAppsMutex.Unlock()
+	if fake.GetSpaceAppsStub != nil {
+		return fake.GetSpaceAppsStub(arg1, arg2)
+	} else {
+		return fake.getSpaceAppsReturns.result1, fake.getSpaceAppsReturns.result2
+	}
+}
+
+func (fake *FakeCFAPIHelper) GetSpaceAppsCallCount() int {
+	fake.getSpaceAppsMutex.RLock()
+	defer fake.getSpaceAppsMutex.RUnlock()
+	return len(fake.getSpaceAppsArgsForCall)
+}
+
+func (fake *FakeCFAPIHelper) GetSpaceAppsArgsForCall(i int) (plugin.CliConnection, apihelper.Space) {
+	fake.getSpaceAppsMutex.RLock()
+	defer fake.getSpaceAppsMutex.RUnlock()
+	return fake.getSpaceAppsArgsForCall[i].arg1, fake.getSpaceAppsArgsForCall[i].arg2
+}
+
+func (fake *FakeCFAPIHelper) GetSpaceAppsReturns(result1 []apihelper.App, result2 error) {
+	fake.GetSpaceAppsStub = nil
+	fake.getSpaceAppsReturns = struct {
+		result1 []apihelper.App
 		result2 error
 	}{result1, result2}
 }
