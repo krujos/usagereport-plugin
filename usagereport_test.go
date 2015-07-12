@@ -80,7 +80,11 @@ var _ = Describe("Usagereport", func() {
 		})
 
 		It("Should not choke on an org with no spaces", func() {
-			Fail("NYI")
+			fakeAPI.GetOrgsReturns([]apihelper.Organization{org}, nil)
+			fakeAPI.GetOrgSpacesReturns(
+				[]apihelper.Space{}, nil)
+			orgs, _ := cmd.getOrgs()
+			Expect(len(orgs[0].spaces)).To(Equal(0))
 		})
 	})
 })

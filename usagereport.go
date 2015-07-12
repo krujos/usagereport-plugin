@@ -98,8 +98,11 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
 		//TODO Insert values form spaces
 		spaces = append(spaces, space{})
 	}
-
 	return spaces, nil
+}
+
+func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
+	return nil, nil
 }
 
 //Run runs the plugin
