@@ -11,7 +11,7 @@ type UsageReportCmd struct {
 	cli       plugin.CliConnection
 }
 
-type org struct {
+type Org struct {
 	name        string
 	memoryQuota float64
 	memoryUsage float64
@@ -43,24 +43,33 @@ func (cmd *UsageReportCmd) UsageReportCommand(cli plugin.CliConnection, args []s
 	//Do the things
 }
 
-func (cmd *UsageReportCmd) getOrgs() (*org, error) {
-	orgs, err := cmd.apiHelper.GetOrgs(cmd.cli)
+func (cmd *UsageReportCmd) getOrgs() ([]Org, error) {
+	rawOrgs, err := cmd.apiHelper.GetOrgs(cmd.cli)
 	if nil != err {
 		return nil, err
 	}
 
-	for _, org := range orgs {
-		_, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, org)
+	var orgs = []Org{}
+
+	for _, org := range rawOrgs {
+
+		usage, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, org)
 		if nil != err {
 			return nil, err
 		}
 
-		_, err = cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, org.QuotaURL)
+		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, org.QuotaURL)
 		if nil != err {
 			return nil, err
 		}
+
+		orgs = append(orgs, Org{
+			name:        org.Name,
+			memoryQuota: quota,
+			memoryUsage: usage,
+		})
 	}
-	return nil, nil
+	return orgs, nil
 }
 
 //Run runs the plugin
