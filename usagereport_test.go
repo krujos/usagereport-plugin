@@ -114,6 +114,5 @@ var _ = Describe("Usagereport", func() {
 			apps := space.apps
 			Expect(len(apps)).To(Equal(3))
 		})
-
 	})
 })
