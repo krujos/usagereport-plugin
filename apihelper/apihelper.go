@@ -98,8 +98,8 @@ func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, spacesURL string) (
 }
 
 //GetSpaceApps returns the apps in a space
-func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, spaceURL string) ([]App, error) {
-	appsJSON, err := cfcurl.Curl(cli, spaceURL)
+func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, appsURL string) ([]App, error) {
+	appsJSON, err := cfcurl.Curl(cli, appsURL)
 	if nil != err {
 		return nil, err
 	}
