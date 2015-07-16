@@ -23,6 +23,7 @@ type Space struct {
 type App struct {
 	Instances float64
 	RAM       float64
+	running   bool
 }
 
 //CFAPIHelper to wrap cf curl results
