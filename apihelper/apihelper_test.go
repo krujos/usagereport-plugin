@@ -157,6 +157,7 @@ var _ = Describe("UsageReport", func() {
 			Expect(len(apps)).To(Equal(1))
 			Expect(apps[0].Instances).To(Equal(float64(1)))
 			Expect(apps[0].RAM).To(Equal(float64(1024)))
+			Expect(apps[0].Running).To(BeTrue())
 		})
 	})
 

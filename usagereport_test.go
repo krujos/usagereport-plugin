@@ -114,5 +114,24 @@ var _ = Describe("Usagereport", func() {
 			apps := space.apps
 			Expect(len(apps)).To(Equal(3))
 		})
+
+		It("Should mark the first app as running, the second as stopped", func() {
+			fakeAPI.GetOrgSpacesReturns(
+				[]apihelper.Space{apihelper.Space{}}, nil)
+
+			fakeAPI.GetSpaceAppsReturns(
+				[]apihelper.App{
+					apihelper.App{Running: true},
+					apihelper.App{Running: false},
+				},
+				nil)
+
+			orgs, _ := cmd.getOrgs()
+			org := orgs[0]
+			space := org.spaces[0]
+			apps := space.apps
+			Expect(apps[0].running).To(BeTrue())
+			Expect(apps[1].running).To(BeFalse())
+		})
 	})
 })

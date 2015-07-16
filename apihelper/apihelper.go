@@ -23,6 +23,7 @@ type Space struct {
 type App struct {
 	Instances float64
 	RAM       float64
+	Running   bool
 }
 
 //CFAPIHelper to wrap cf curl results
@@ -111,6 +112,7 @@ func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, appsURL string) ([]
 			App{
 				Instances: entity["instances"].(float64),
 				RAM:       entity["memory"].(float64),
+				Running:   "STARTED" == entity["state"].(string),
 			})
 	}
 	return apps, nil

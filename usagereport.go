@@ -29,6 +29,7 @@ type space struct {
 type app struct {
 	ram       int
 	instances int
+	running   bool
 }
 
 //GetMetadata returns metatada
@@ -70,16 +71,26 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 	totalApps := 0
 	totalInstances := 0
 	for _, org := range orgs {
-		fmt.Printf("Org %s is using %d MB of %d MB.\n", org.name, org.memoryUsage, org.memoryQuota)
+		fmt.Printf("Org %s is consuming %d MB of %d MB.\n", org.name, org.memoryUsage, org.memoryQuota)
 		for _, space := range org.spaces {
 			consumed := 0
 			instances := 0
+			runningApps := 0
+			runningInstances := 0
 			for _, app := range space.apps {
-				consumed += int(app.instances * app.ram)
+				if app.running {
+					consumed += int(app.instances * app.ram)
+					runningApps++
+					runningInstances += app.instances
+				}
 				instances += int(app.instances)
 			}
-			fmt.Printf("\tSpace %s is using %d MB memory (%d%%) of org quota. %d apps %d instances.\n",
-				space.name, consumed, (100 * consumed / org.memoryQuota), len(space.apps), instances)
+			fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
+				space.name, consumed, (100 * consumed / org.memoryQuota))
+			fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
+				runningApps, len(space.apps)-runningApps)
+			fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
+				runningInstances, instances-runningInstances)
 			totalInstances += instances
 			totalApps += len(space.apps)
 		}
@@ -151,6 +162,7 @@ func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
 		apps = append(apps, app{
 			instances: int(a.Instances),
 			ram:       int(a.RAM),
+			running:   a.Running,
 		})
 	}
 	return apps, nil
