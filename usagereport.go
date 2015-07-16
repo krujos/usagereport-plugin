@@ -75,12 +75,22 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 		for _, space := range org.spaces {
 			consumed := 0
 			instances := 0
+			runningApps := 0
+			runningInstances := 0
 			for _, app := range space.apps {
-				consumed += int(app.instances * app.ram)
+				if app.running {
+					consumed += int(app.instances * app.ram)
+					runningApps++
+					runningInstances += app.instances
+				}
 				instances += int(app.instances)
 			}
-			fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota. %d apps %d instances.\n",
-				space.name, consumed, (100 * consumed / org.memoryQuota), len(space.apps), instances)
+			fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
+				space.name, consumed, (100 * consumed / org.memoryQuota))
+			fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
+				runningApps, len(space.apps)-runningApps)
+			fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
+				runningInstances, instances-runningInstances)
 			totalInstances += instances
 			totalApps += len(space.apps)
 		}
