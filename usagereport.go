@@ -29,6 +29,7 @@ type space struct {
 type app struct {
 	ram       int
 	instances int
+	running   bool
 }
 
 //GetMetadata returns metatada
@@ -151,6 +152,7 @@ func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
 		apps = append(apps, app{
 			instances: int(a.Instances),
 			ram:       int(a.RAM),
+			running:   a.Running,
 		})
 	}
 	return apps, nil
