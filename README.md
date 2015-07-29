@@ -7,8 +7,7 @@ This CF CLI Plugin to shows memory consumption and application instances for eac
 #Usage
 
 ```
-➜  usagereport-plugin git:(master) ✗ cf usage-report                                                                                                                               $
-➜  ~  cf usage-report                                                         $
+➜  usagereport-plugin git:(master) ✗ cf usage-report
 Gathering usage information
 Org platform-eng is consuming 53400 MB of 204800 MB.
 	Space CFbook is consuming 128 MB memory (0%) of org quota.
