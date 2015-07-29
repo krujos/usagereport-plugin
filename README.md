@@ -8,25 +8,54 @@ This CF CLI Plugin to shows memory consumption and application instances for eac
 
 ```
 ➜  usagereport-plugin git:(master) ✗ cf usage-report                                                                                                                               $
+➜  ~  cf usage-report                                                         $
 Gathering usage information
-Org platform-eng is using 46232 MB of 204800 MB.
-        Space CFbook is using 128 MB memory (0%) of org quota. 1 apps 1 instances.
-Org krujos is using 512 MB of 10240 MB.
-        Space development is using 3200 MB memory (31%) of org quota. 4 apps 4 instances.
-        Space production is using 512 MB memory (5%) of org quota. 1 apps 2 instances.
-Org pcfp is using 5120 MB of 102400 MB.
-        Space development is using 0 MB memory (0%) of org quota. 0 apps 0 instances.
-        Space docs-staging is using 1024 MB memory (1%) of org quota. 2 apps 4 instances.
-        Space docs-prod is using 2048 MB memory (2%) of org quota. 3 apps 5 instances.
-        Space guillermo-playground is using 512 MB memory (0%) of org quota. 1 apps 1 instances.
-        Space haydon-playground is using 1024 MB memory (1%) of org quota. 1 apps 1 instances.
-        Space jkruck-playground is using 0 MB memory (0%) of org quota. 0 apps 0 instances.
-        Space rsalas-dev is using 0 MB memory (0%) of org quota. 0 apps 0 instances.
-        Space shekel-dev is using 1536 MB memory (1%) of org quota. 3 apps 3 instances.
-        Space shekel-qa is using 0 MB memory (0%) of org quota. 0 apps 0 instances.
-        Space hd-playground is using 0 MB memory (0%) of org quota. 0 apps 0 instances.
-        Space dwallraff-dev is using 1024 MB memory (1%) of org quota. 1 apps 1 instances.
-You are running 17 apps in all orgs, with a total of 22 instances.
+Org platform-eng is consuming 53400 MB of 204800 MB.
+	Space CFbook is consuming 128 MB memory (0%) of org quota.
+		1 apps: 1 running 0 stopped
+		1 instances: 1 running, 0 stopped
+Org krujos is consuming 512 MB of 10240 MB.
+	Space development is consuming 0 MB memory (0%) of org quota.
+		4 apps: 0 running 4 stopped
+		4 instances: 0 running, 4 stopped
+	Space production is consuming 512 MB memory (5%) of org quota.
+		1 apps: 1 running 0 stopped
+		2 instances: 2 running, 0 stopped
+Org pcfp is consuming 7296 MB of 102400 MB.
+	Space development is consuming 0 MB memory (0%) of org quota.
+		0 apps: 0 running 0 stopped
+		0 instances: 0 running, 0 stopped
+	Space docs-staging is consuming 512 MB memory (0%) of org quota.
+		2 apps: 1 running 1 stopped
+		4 instances: 2 running, 2 stopped
+	Space docs-prod is consuming 512 MB memory (0%) of org quota.
+		3 apps: 1 running 2 stopped
+		5 instances: 2 running, 3 stopped
+	Space guillermo-playground is consuming 2560 MB memory (2%) of org quota.
+		1 apps: 1 running 0 stopped
+		5 instances: 5 running, 0 stopped
+	Space haydon-playground is consuming 1024 MB memory (1%) of org quota.
+		1 apps: 1 running 0 stopped
+		1 instances: 1 running, 0 stopped
+	Space jkruck-playground is consuming 128 MB memory (0%) of org quota.
+		1 apps: 1 running 0 stopped
+		1 instances: 1 running, 0 stopped
+	Space rsalas-dev is consuming 0 MB memory (0%) of org quota.
+		0 apps: 0 running 0 stopped
+		0 instances: 0 running, 0 stopped
+	Space shekel-dev is consuming 1536 MB memory (1%) of org quota.
+		3 apps: 3 running 0 stopped
+		3 instances: 3 running, 0 stopped
+	Space shekel-qa is consuming 0 MB memory (0%) of org quota.
+		0 apps: 0 running 0 stopped
+		0 instances: 0 running, 0 stopped
+	Space hd-playground is consuming 0 MB memory (0%) of org quota.
+		0 apps: 0 running 0 stopped
+		0 instances: 0 running, 0 stopped
+	Space dwallraff-dev is consuming 1024 MB memory (1%) of org quota.
+		1 apps: 1 running 0 stopped
+		1 instances: 1 running, 0 stopped
+You are running 18 apps in all orgs, with a total of 27 instances.
 ```
 
 ##Installation
