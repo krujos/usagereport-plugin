@@ -61,7 +61,7 @@ You are running 18 apps in all orgs, with a total of 27 instances.
 #####Install from CLI 
   ```
   $ cf add-plugin-repo CF-Community http://plugins.cloudfoundry.org/
-  $ cf install-plugin usagereport -r CF-Community
+  $ cf install-plugin 'Usage Report' -r CF-Community
   ```
 
 
