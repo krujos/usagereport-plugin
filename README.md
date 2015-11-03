@@ -54,11 +54,11 @@ Org pcfp is consuming 7296 MB of 102400 MB.
 	Space dwallraff-dev is consuming 1024 MB memory (1%) of org quota.
 		1 apps: 1 running 0 stopped
 		1 instances: 1 running, 0 stopped
-You are running 18 apps in all orgs, with a total of 27 instances.
+You are running 18 apps in 3 orgs, with a total of 27 instances.
 ```
 
 ##Installation
-#####Install from CLI 
+#####Install from CLI
   ```
   $ cf add-plugin-repo CF-Community http://plugins.cloudfoundry.org/
   $ cf install-plugin 'Usage Report' -r CF-Community
