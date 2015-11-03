@@ -95,8 +95,8 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 			totalApps += len(space.apps)
 		}
 	}
-	fmt.Printf("You are running %d apps in all orgs, with a total of %d instances.\n",
-		totalApps, totalInstances)
+	fmt.Printf("You are running %d apps in %d orgs, with a total of %d instances.\n",
+		totalApps, len(orgs), totalInstances)
 }
 
 func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
