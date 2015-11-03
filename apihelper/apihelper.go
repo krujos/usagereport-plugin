@@ -1,6 +1,8 @@
 package apihelper
 
 import (
+	"strconv"
+
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/cfcurl"
 )
@@ -44,19 +46,24 @@ func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) 
 	if nil != err {
 		return nil, err
 	}
-
+	pages := int(orgsJSON["total_pages"].(float64))
 	orgs := []Organization{}
-	for _, o := range orgsJSON["resources"].([]interface{}) {
-		theOrg := o.(map[string]interface{})
-		entity := theOrg["entity"].(map[string]interface{})
-		metadata := theOrg["metadata"].(map[string]interface{})
-		orgs = append(orgs,
-			Organization{
-				Name:      entity["name"].(string),
-				URL:       metadata["url"].(string),
-				QuotaURL:  entity["quota_definition_url"].(string),
-				SpacesURL: entity["spaces_url"].(string),
-			})
+	for i := 1; i <= pages; i++ {
+		if 1 != i {
+			orgsJSON, err = cfcurl.Curl(cli, "/v2/organizations?page="+strconv.Itoa(i))
+		}
+		for _, o := range orgsJSON["resources"].([]interface{}) {
+			theOrg := o.(map[string]interface{})
+			entity := theOrg["entity"].(map[string]interface{})
+			metadata := theOrg["metadata"].(map[string]interface{})
+			orgs = append(orgs,
+				Organization{
+					Name:      entity["name"].(string),
+					URL:       metadata["url"].(string),
+					QuotaURL:  entity["quota_definition_url"].(string),
+					SpacesURL: entity["spaces_url"].(string),
+				})
+		}
 	}
 	return orgs, nil
 }

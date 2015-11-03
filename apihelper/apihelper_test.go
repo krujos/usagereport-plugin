@@ -66,6 +66,30 @@ var _ = Describe("UsageReport", func() {
 
 	})
 
+	Describe("paged org output", func() {
+		var orgsPage1 []string
+
+		BeforeEach(func() {
+			orgsPage1 = slurp("test-data/paged-orgs-page-1.json")
+		})
+
+		It("deals with paged output", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsPage1, nil)
+			api.GetOrgs(fakeCliConnection)
+			args := fakeCliConnection.CliCommandWithoutTerminalOutputArgsForCall(0)
+			Expect(args[1]).To(Equal("/v2/organizations"))
+			Ω(fakeCliConnection.CliCommandWithoutTerminalOutputCallCount()).To(Equal(2))
+		})
+
+		It("Should have 100 orgs", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(orgsPage1, nil)
+			orgs, _ := api.GetOrgs(fakeCliConnection)
+			args := fakeCliConnection.CliCommandWithoutTerminalOutputArgsForCall(1)
+			Expect(args[1]).To(Equal("/v2/organizations?page=2"))
+			Ω(orgs).To(HaveLen(100))
+		})
+	})
+
 	Describe("Get quota memory limit", func() {
 		var quotaJSON []string
 
