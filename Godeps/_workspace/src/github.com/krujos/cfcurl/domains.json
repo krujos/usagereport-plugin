@@ -1,0 +1,20 @@
+{
+   "total_results": 1,
+   "total_pages": 1,
+   "prev_url": null,
+   "next_url": null,
+   "resources": [
+      {
+         "metadata": {
+            "guid": "b4375291-58d3-4065-a89d-15097bb50d37",
+            "url": "/v2/domains/b4375291-58d3-4065-a89d-15097bb50d37",
+            "created_at": "2015-07-06T22:53:52Z",
+            "updated_at": "2015-07-06T22:53:52Z"
+         },
+         "entity": {
+            "name": "10.244.0.34.xip.io"
+         }
+      }
+   ]
+}
+Endpoint deprecated
