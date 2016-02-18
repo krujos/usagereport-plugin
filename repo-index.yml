@@ -2,13 +2,15 @@
   description: Report on memory usage and application instances for orgs and spaces
   version: _TAG_
   created: 2015-7-12
-  updated: 2015-7-12
+  updated: 2016-2-18
   company:
   authors:
   - name: Josh Kruck
     homepage: http://github.com/krujos/
     contact: jkruck@pivotal.io
-  homepage: http://github.com/krujos/usagereport-plugin
+  - name: Cornelia Davis
+    homepage: http://github.com/cdavisafc/
+    contact: cdavis@pivotal.io
   binaries:
   - platform: osx
     url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/osx/usagereport-plugin
