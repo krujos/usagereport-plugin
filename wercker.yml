@@ -8,27 +8,40 @@ build:
   steps:
     # Sets the go workspace and places you package
     # at the right place in the workspace tree
-    - setup-go-workspace
+    - wercker/setup-go-workspace:
+       package-dir: github.com/krujos/usagereport-plugin
 
-    # Gets the dependencies
-    - script:
-        name: go get
-        code: |
-          go get
     - script:
         name: Get dependencies
         code: |-
+            go get github.com/tools/godep
             go get github.com/onsi/ginkgo
             go get github.com/onsi/gomega
             go install github.com/onsi/ginkgo/ginkgo
-    # Build the project
+    # Build the project do we need this?
     - script:
-        name: go build
+        name: godep go build
         code: |
-          go build ./...
+          godep go build ./...
 
     # Test the project
     - script:
-        name: go test
+        name: test
         code: |
-          ginkgo -r
+          godep go test ./...
+
+    # Integration test
+    - script:
+        name: Integration test
+        code: |
+         godep go build
+         wget https://cli.run.pivotal.io/stable\?release\=linux64-binary\&source\=github -O cli.tgz
+         tar -xvf cli.tgz
+         chmod +x ./cf
+         ./cf api api.run.pivotal.io
+         ./cf auth $cfuser "$cfpass"
+         ./cf target -s $cfspace -o $cforg
+         ls -al
+         ./cf install-plugin -f usagereport-plugin
+         ./cf usage-report
+

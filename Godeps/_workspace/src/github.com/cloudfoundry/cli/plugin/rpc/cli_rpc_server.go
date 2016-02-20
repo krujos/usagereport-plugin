@@ -1,13 +1,16 @@
 package rpc
 
 import (
+	"os"
+
+	"github.com/blang/semver"
+	"github.com/cloudfoundry/cli/cf"
 	"github.com/cloudfoundry/cli/cf/api"
 	"github.com/cloudfoundry/cli/cf/command_registry"
 	"github.com/cloudfoundry/cli/cf/configuration/core_config"
 	"github.com/cloudfoundry/cli/cf/terminal"
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/cloudfoundry/cli/plugin/models"
-	"github.com/codegangsta/cli"
 
 	"fmt"
 	"net"
@@ -24,19 +27,18 @@ type CliRpcService struct {
 
 type CliRpcCmd struct {
 	PluginMetadata       *plugin.PluginMetadata
-	coreCommandRunner    *cli.App
 	outputCapture        terminal.OutputCapture
 	terminalOutputSwitch terminal.TerminalOutputSwitch
 	cliConfig            core_config.Repository
 	repoLocator          api.RepositoryLocator
 	newCmdRunner         NonCodegangstaRunner
+	outputBucket         *[]string
 }
 
-func NewRpcService(commandRunner *cli.App, outputCapture terminal.OutputCapture, terminalOutputSwitch terminal.TerminalOutputSwitch, cliConfig core_config.Repository, repoLocator api.RepositoryLocator, newCmdRunner NonCodegangstaRunner) (*CliRpcService, error) {
+func NewRpcService(outputCapture terminal.OutputCapture, terminalOutputSwitch terminal.TerminalOutputSwitch, cliConfig core_config.Repository, repoLocator api.RepositoryLocator, newCmdRunner NonCodegangstaRunner) (*CliRpcService, error) {
 	rpcService := &CliRpcService{
 		RpcCmd: &CliRpcCmd{
 			PluginMetadata:       &plugin.PluginMetadata{},
-			coreCommandRunner:    commandRunner,
 			outputCapture:        outputCapture,
 			terminalOutputSwitch: terminalOutputSwitch,
 			cliConfig:            cliConfig,
@@ -91,8 +93,25 @@ func (cli *CliRpcService) Start() error {
 	return nil
 }
 
-func (cmd *CliRpcService) SetTheApp(app *cli.App) {
-	cmd.RpcCmd.coreCommandRunner = app
+func (cmd *CliRpcCmd) IsMinCliVersion(version string, retVal *bool) error {
+	if cf.Version == "BUILT_FROM_SOURCE" {
+		*retVal = true
+		return nil
+	}
+
+	actualVersion, err := semver.Make(cf.Version)
+	if err != nil {
+		return err
+	}
+
+	requiredVersion, err := semver.Make(version)
+	if err != nil {
+		return err
+	}
+
+	*retVal = actualVersion.GTE(requiredVersion)
+
+	return nil
 }
 
 func (cmd *CliRpcCmd) SetPluginMetadata(pluginMetadata plugin.PluginMetadata, retVal *bool) error {
@@ -115,6 +134,9 @@ func (cmd *CliRpcCmd) CallCoreCommand(args []string, retVal *bool) error {
 	var err error
 	cmdRegistry := command_registry.Commands
 
+	cmd.outputBucket = &[]string{}
+	cmd.outputCapture.SetOutputBucket(cmd.outputBucket)
+
 	if cmdRegistry.CommandExists(args[0]) {
 		deps := command_registry.NewDependency()
 
@@ -123,10 +145,13 @@ func (cmd *CliRpcCmd) CallCoreCommand(args []string, retVal *bool) error {
 		deps.Config = cmd.cliConfig
 		deps.RepoLocator = cmd.repoLocator
 
-		err = cmd.newCmdRunner.Command(args, deps)
+		//set command ui's TeePrinter to be the one used by RpcService, for output to be captured
+		deps.Ui = terminal.NewUI(os.Stdin, cmd.outputCapture.(*terminal.TeePrinter))
+
+		err = cmd.newCmdRunner.Command(args, deps, false)
 	} else {
-		//call codegangsta command
-		err = cmd.coreCommandRunner.Run(append([]string{"CF_NAME"}, args...))
+		*retVal = false
+		return nil
 	}
 
 	if err != nil {
@@ -139,21 +164,13 @@ func (cmd *CliRpcCmd) CallCoreCommand(args []string, retVal *bool) error {
 }
 
 func (cmd *CliRpcCmd) GetOutputAndReset(args bool, retVal *[]string) error {
-	*retVal = cmd.outputCapture.GetOutputAndReset()
+	*retVal = *cmd.outputBucket
 	return nil
 }
 
 func (cmd *CliRpcCmd) GetCurrentOrg(args string, retVal *plugin_models.Organization) error {
 	retVal.Name = cmd.cliConfig.OrganizationFields().Name
 	retVal.Guid = cmd.cliConfig.OrganizationFields().Guid
-	retVal.QuotaDefinition.Guid = cmd.cliConfig.OrganizationFields().QuotaDefinition.Guid
-	retVal.QuotaDefinition.Name = cmd.cliConfig.OrganizationFields().QuotaDefinition.Name
-	retVal.QuotaDefinition.MemoryLimit = cmd.cliConfig.OrganizationFields().QuotaDefinition.MemoryLimit
-	retVal.QuotaDefinition.InstanceMemoryLimit = cmd.cliConfig.OrganizationFields().QuotaDefinition.InstanceMemoryLimit
-	retVal.QuotaDefinition.RoutesLimit = cmd.cliConfig.OrganizationFields().QuotaDefinition.RoutesLimit
-	retVal.QuotaDefinition.ServicesLimit = cmd.cliConfig.OrganizationFields().QuotaDefinition.ServicesLimit
-	retVal.QuotaDefinition.NonBasicServicesAllowed = cmd.cliConfig.OrganizationFields().QuotaDefinition.NonBasicServicesAllowed
-
 	return nil
 }
 
@@ -237,12 +254,17 @@ func (cmd *CliRpcCmd) DopplerEndpoint(args string, retVal *string) error {
 }
 
 func (cmd *CliRpcCmd) AccessToken(args string, retVal *string) error {
-	*retVal = cmd.cliConfig.AccessToken()
+	token, err := cmd.repoLocator.GetAuthenticationRepository().RefreshAuthToken()
+	if err != nil {
+		return err
+	}
+
+	*retVal = token
 
 	return nil
 }
 
-func (cmd *CliRpcCmd) GetApp(appName string, retVal *plugin_models.Application) error {
+func (cmd *CliRpcCmd) GetApp(appName string, retVal *plugin_models.GetAppModel) error {
 	defer func() {
 		recover()
 	}()
@@ -254,7 +276,170 @@ func (cmd *CliRpcCmd) GetApp(appName string, retVal *plugin_models.Application) 
 	deps.Config = cmd.cliConfig
 	deps.RepoLocator = cmd.repoLocator
 	deps.PluginModels.Application = retVal
-	deps.Ui.DisableTerminalOutput(true)
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
 
-	return cmd.newCmdRunner.Command([]string{"app", appName}, deps)
+	return cmd.newCmdRunner.Command([]string{"app", appName}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetApps(_ string, retVal *[]plugin_models.GetAppsModel) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.AppsSummary = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"apps"}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetOrgs(_ string, retVal *[]plugin_models.GetOrgs_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.Organizations = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"orgs"}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetSpaces(_ string, retVal *[]plugin_models.GetSpaces_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.Spaces = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"spaces"}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetServices(_ string, retVal *[]plugin_models.GetServices_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.Services = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"services"}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetOrgUsers(args []string, retVal *[]plugin_models.GetOrgUsers_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.OrgUsers = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command(append([]string{"org-users"}, args...), deps, true)
+}
+
+func (cmd *CliRpcCmd) GetSpaceUsers(args []string, retVal *[]plugin_models.GetSpaceUsers_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.SpaceUsers = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command(append([]string{"space-users"}, args...), deps, true)
+}
+
+func (cmd *CliRpcCmd) GetOrg(orgName string, retVal *plugin_models.GetOrg_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.Organization = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"org", orgName}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetSpace(spaceName string, retVal *plugin_models.GetSpace_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.Space = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"space", spaceName}, deps, true)
+}
+
+func (cmd *CliRpcCmd) GetService(serviceInstance string, retVal *plugin_models.GetService_Model) error {
+	defer func() {
+		recover()
+	}()
+
+	deps := command_registry.NewDependency()
+
+	//set deps objs to be the one used by all other codegangsta commands
+	//once all commands are converted, we can make fresh deps for each command run
+	deps.Config = cmd.cliConfig
+	deps.RepoLocator = cmd.repoLocator
+	deps.PluginModels.Service = retVal
+	cmd.terminalOutputSwitch.DisableTerminalOutput(true)
+	deps.Ui = terminal.NewUI(os.Stdin, cmd.terminalOutputSwitch.(*terminal.TeePrinter))
+
+	return cmd.newCmdRunner.Command([]string{"service", serviceInstance}, deps, true)
 }
