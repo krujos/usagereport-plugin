@@ -1,8 +1,8 @@
 - name: Usage Report
   description: Report on memory usage and application instances for orgs and spaces
   version: _TAG_
-  created: 2015-7-12
-  updated: 2016-2-18
+  created: 2015-07-12T00:00:00Z
+  updated: 2016-02-18T00:00:00Z
   company:
   authors:
   - name: Josh Kruck
