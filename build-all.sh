@@ -34,9 +34,15 @@ WIN64_SHA1=`cat usagereport-plugin.exe | openssl sha1`
 mkdir -p bin/win64
 mv usagereport-plugin.exe bin/win64
 
+GOOS=windows GOARCH=386 go build
+WIN32_SHA1=`cat usagereport-plugin.exe | openssl sha1`
+mkdir -p bin/win32
+mv usagereport-plugin.exe bin/win32
+
 cat repo-index.yml |
 sed "s/osx-sha1/$OSX_SHA1/" |
 sed "s/win64-sha1/$WIN64_SHA1/" |
+sed "s/win32-sha1/$WIN32_SHA1/" |
 sed "s/linux64-sha1/$LINUX64_SHA1/" |
 sed "s/_TAG_/$TAG/" |
 cat

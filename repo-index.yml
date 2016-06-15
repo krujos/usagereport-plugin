@@ -18,6 +18,9 @@
   - platform: win64
     url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/win64/usagereport-plugin.exe
     checksum: win64-sha1
+  - platform: win32
+    url: http://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/win32/usagereport-plugin.exe
+    checksum: win32-sha1
   - platform: linux64
     url: https://github.com/krujos/usagereport-plugin/raw/_TAG_/bin/linux64/usagereport-plugin
     checksum: linux64-sha1
