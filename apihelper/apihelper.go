@@ -30,19 +30,25 @@ type App struct {
 
 //CFAPIHelper to wrap cf curl results
 type CFAPIHelper interface {
-	GetOrgs(plugin.CliConnection) ([]Organization, error)
-	GetQuotaMemoryLimit(plugin.CliConnection, string) (float64, error)
-	GetOrgMemoryUsage(plugin.CliConnection, Organization) (float64, error)
-	GetOrgSpaces(plugin.CliConnection, string) ([]Space, error)
-	GetSpaceApps(plugin.CliConnection, string) ([]App, error)
+	GetOrgs() ([]Organization, error)
+	GetQuotaMemoryLimit(string) (float64, error)
+	GetOrgMemoryUsage(Organization) (float64, error)
+	GetOrgSpaces(string) ([]Space, error)
+	GetSpaceApps(string) ([]App, error)
 }
 
 //APIHelper implementation
-type APIHelper struct{}
+type APIHelper struct {
+	cli plugin.CliConnection
+}
+
+func New(cli plugin.CliConnection) CFAPIHelper {
+	return &APIHelper{cli}
+}
 
 //GetOrgs returns a struct that represents critical fields in the JSON
-func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) {
-	orgsJSON, err := cfcurl.Curl(cli, "/v2/organizations")
+func (api *APIHelper) GetOrgs() ([]Organization, error) {
+	orgsJSON, err := cfcurl.Curl(api.cli, "/v2/organizations")
 	if nil != err {
 		return nil, err
 	}
@@ -50,7 +56,7 @@ func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) 
 	orgs := []Organization{}
 	for i := 1; i <= pages; i++ {
 		if 1 != i {
-			orgsJSON, err = cfcurl.Curl(cli, "/v2/organizations?page="+strconv.Itoa(i))
+			orgsJSON, err = cfcurl.Curl(api.cli, "/v2/organizations?page="+strconv.Itoa(i))
 		}
 		for _, o := range orgsJSON["resources"].([]interface{}) {
 			theOrg := o.(map[string]interface{})
@@ -69,8 +75,8 @@ func (api *APIHelper) GetOrgs(cli plugin.CliConnection) ([]Organization, error) 
 }
 
 //GetQuotaMemoryLimit retruns the amount of memory (in MB) that the org is allowed
-func (api *APIHelper) GetQuotaMemoryLimit(cli plugin.CliConnection, quotaURL string) (float64, error) {
-	quotaJSON, err := cfcurl.Curl(cli, quotaURL)
+func (api *APIHelper) GetQuotaMemoryLimit(quotaURL string) (float64, error) {
+	quotaJSON, err := cfcurl.Curl(api.cli, quotaURL)
 	if nil != err {
 		return 0, err
 	}
@@ -78,8 +84,8 @@ func (api *APIHelper) GetQuotaMemoryLimit(cli plugin.CliConnection, quotaURL str
 }
 
 //GetOrgMemoryUsage returns the amount of memory (in MB) that the org is consuming
-func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organization) (float64, error) {
-	usageJSON, err := cfcurl.Curl(cli, org.URL+"/memory_usage")
+func (api *APIHelper) GetOrgMemoryUsage(org Organization) (float64, error) {
+	usageJSON, err := cfcurl.Curl(api.cli, org.URL+"/memory_usage")
 	if nil != err {
 		return 0, err
 	}
@@ -87,8 +93,8 @@ func (api *APIHelper) GetOrgMemoryUsage(cli plugin.CliConnection, org Organizati
 }
 
 //GetOrgSpaces returns the spaces in an org.
-func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, spacesURL string) ([]Space, error) {
-	spacesJSON, err := cfcurl.Curl(cli, spacesURL)
+func (api *APIHelper) GetOrgSpaces(spacesURL string) ([]Space, error) {
+	spacesJSON, err := cfcurl.Curl(api.cli, spacesURL)
 	if nil != err {
 		return nil, err
 	}
@@ -106,8 +112,8 @@ func (api *APIHelper) GetOrgSpaces(cli plugin.CliConnection, spacesURL string) (
 }
 
 //GetSpaceApps returns the apps in a space
-func (api *APIHelper) GetSpaceApps(cli plugin.CliConnection, appsURL string) ([]App, error) {
-	appsJSON, err := cfcurl.Curl(cli, appsURL)
+func (api *APIHelper) GetSpaceApps(appsURL string) ([]App, error) {
+	appsJSON, err := cfcurl.Curl(api.cli, appsURL)
 	if nil != err {
 		return nil, err
 	}

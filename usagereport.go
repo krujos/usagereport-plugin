@@ -11,7 +11,6 @@ import (
 //UsageReportCmd the plugin
 type UsageReportCmd struct {
 	apiHelper apihelper.CFAPIHelper
-	cli       plugin.CliConnection
 }
 
 type org struct {
@@ -57,11 +56,6 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 	fmt.Println("Gathering usage information")
 
-	if nil == cmd.cli {
-		fmt.Println("ERROR: CLI Connection is nil!")
-		os.Exit(1)
-	}
-
 	orgs, err := cmd.getOrgs()
 	if nil != err {
 		fmt.Println(err)
@@ -100,7 +94,7 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 }
 
 func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
-	rawOrgs, err := cmd.apiHelper.GetOrgs(cmd.cli)
+	rawOrgs, err := cmd.apiHelper.GetOrgs()
 	if nil != err {
 		return nil, err
 	}
@@ -108,11 +102,11 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 	var orgs = []org{}
 
 	for _, o := range rawOrgs {
-		usage, err := cmd.apiHelper.GetOrgMemoryUsage(cmd.cli, o)
+		usage, err := cmd.apiHelper.GetOrgMemoryUsage(o)
 		if nil != err {
 			return nil, err
 		}
-		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(cmd.cli, o.QuotaURL)
+		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(o.QuotaURL)
 		if nil != err {
 			return nil, err
 		}
@@ -132,7 +126,7 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 }
 
 func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
-	rawSpaces, err := cmd.apiHelper.GetOrgSpaces(cmd.cli, spaceURL)
+	rawSpaces, err := cmd.apiHelper.GetOrgSpaces(spaceURL)
 	if nil != err {
 		return nil, err
 	}
@@ -153,7 +147,7 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
 }
 
 func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
-	rawApps, err := cmd.apiHelper.GetSpaceApps(cmd.cli, appsURL)
+	rawApps, err := cmd.apiHelper.GetSpaceApps(appsURL)
 	if nil != err {
 		return nil, err
 	}
@@ -171,8 +165,7 @@ func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
 //Run runs the plugin
 func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 	if args[0] == "usage-report" {
-		cmd.apiHelper = &apihelper.APIHelper{}
-		cmd.cli = cli
+		cmd.apiHelper = apihelper.New(cli)
 		cmd.UsageReportCommand(args)
 	}
 }
