@@ -18,7 +18,15 @@ var _ = Describe("Usagereport", func() {
 		cmd = &UsageReportCmd{apiHelper: fakeAPI}
 	})
 
-	Describe("get org errors", func() {
+	Describe("get single org errors", func() {
+		It("should return an error if cf curl /v2/organizations fails", func() {
+			fakeAPI.GetOrgReturns(apihelper.Organization{}, errors.New("Bad Things"))
+			_, err := cmd.getOrg("test")
+			Expect(err).ToNot(BeNil())
+		})
+	})
+
+	Describe("get orgs errors", func() {
 
 		It("should return an error if cf curl /v2/organizations fails", func() {
 			fakeAPI.GetOrgsReturns(nil, errors.New("Bad Things"))

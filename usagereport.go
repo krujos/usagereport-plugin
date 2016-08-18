@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -31,6 +32,26 @@ type app struct {
 	running   bool
 }
 
+// contains CLI flag values
+type flagVal struct {
+	OrgName string
+}
+
+func ParseFlags(args []string) flagVal {
+	flagSet := flag.NewFlagSet(args[0], flag.ContinueOnError)
+
+	// Create flags
+	orgName := flagSet.String("o", "", "-o orgName")
+	err := flagSet.Parse(args[1:])
+	if err != nil {
+
+	}
+
+	return flagVal{
+		OrgName: string(*orgName),
+	}
+}
+
 //GetMetadata returns metatada
 func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
@@ -45,7 +66,10 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 				Name:     "usage-report",
 				HelpText: "Report AI and memory usage for orgs and spaces",
 				UsageDetails: plugin.Usage{
-					Usage: "cf usage-report",
+					Usage: "cf usage-report [-o orgName]",
+					Options: map[string]string{
+						"o": "organization",
+					},
 				},
 			},
 		},
@@ -54,43 +78,70 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 
 //UsageReportCommand doer
 func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
-	fmt.Println("Gathering usage information")
+	flagVals := ParseFlags(args)
 
-	orgs, err := cmd.getOrgs()
-	if nil != err {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	fmt.Println("Gathering usage information")
 
 	totalApps := 0
 	totalInstances := 0
-	for _, org := range orgs {
-		fmt.Printf("Org %s is consuming %d MB of %d MB.\n", org.name, org.memoryUsage, org.memoryQuota)
-		for _, space := range org.spaces {
-			consumed := 0
-			instances := 0
-			runningApps := 0
-			runningInstances := 0
-			for _, app := range space.apps {
-				if app.running {
-					consumed += int(app.instances * app.ram)
-					runningApps++
-					runningInstances += app.instances
-				}
-				instances += int(app.instances)
-			}
-			fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
-				space.name, consumed, (100 * consumed / org.memoryQuota))
-			fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
-				runningApps, len(space.apps)-runningApps)
-			fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
-				runningInstances, instances-runningInstances)
-			totalInstances += instances
-			totalApps += len(space.apps)
+
+	var orgs []org
+	var err error
+
+	if flagVals.OrgName != "" {
+		org, err := cmd.getOrg(flagVals.OrgName)
+		if nil != err {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		orgs = append(orgs, *org)
+	} else {
+		orgs, err = cmd.getOrgs()
+		if nil != err {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
-	fmt.Printf("You are running %d apps in %d orgs, with a total of %d instances.\n",
+
+	for _, org := range orgs {
+		appsPerOrg, instancesPerOrg := cmd.printOrg(org)
+		totalApps += appsPerOrg
+		totalInstances += instancesPerOrg
+	}
+
+	fmt.Printf("You are running %d apps in %d org(s), with a total of %d instances.\n",
 		totalApps, len(orgs), totalInstances)
+}
+
+func (cmd *UsageReportCmd) printOrg(o org) (int, int) {
+	totalApps := 0
+	totalInstances := 0
+
+	fmt.Printf("Org %s is consuming %d MB of %d MB.\n", o.name, o.memoryUsage, o.memoryQuota)
+	for _, space := range o.spaces {
+		consumed := 0
+		instances := 0
+		runningApps := 0
+		runningInstances := 0
+		for _, app := range space.apps {
+			if app.running {
+				consumed += int(app.instances * app.ram)
+				runningApps++
+				runningInstances += app.instances
+			}
+			instances += int(app.instances)
+		}
+		fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
+			space.name, consumed, (100 * consumed / o.memoryQuota))
+		fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
+			runningApps, len(space.apps)-runningApps)
+		fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
+			runningInstances, instances-runningInstances)
+		totalInstances += instances
+		totalApps += len(space.apps)
+	}
+
+	return totalApps, totalInstances
 }
 
 func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
@@ -102,27 +153,44 @@ func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
 	var orgs = []org{}
 
 	for _, o := range rawOrgs {
-		usage, err := cmd.apiHelper.GetOrgMemoryUsage(o)
-		if nil != err {
+		orgDetails, err := cmd.getOrgDetails(o)
+		if err != nil {
 			return nil, err
 		}
-		quota, err := cmd.apiHelper.GetQuotaMemoryLimit(o.QuotaURL)
-		if nil != err {
-			return nil, err
-		}
-		spaces, err := cmd.getSpaces(o.SpacesURL)
-		if nil != err {
-			return nil, err
-		}
-
-		orgs = append(orgs, org{
-			name:        o.Name,
-			memoryQuota: int(quota),
-			memoryUsage: int(usage),
-			spaces:      spaces,
-		})
+		orgs = append(orgs, *orgDetails)
 	}
 	return orgs, nil
+}
+
+func (cmd *UsageReportCmd) getOrg(name string) (*org, error) {
+	rawOrg, err := cmd.apiHelper.GetOrg(name)
+	if nil != err {
+		return nil, err
+	}
+
+	return cmd.getOrgDetails(rawOrg)
+}
+
+func (cmd *UsageReportCmd) getOrgDetails(o apihelper.Organization) (*org, error) {
+	usage, err := cmd.apiHelper.GetOrgMemoryUsage(o)
+	if nil != err {
+		return nil, err
+	}
+	quota, err := cmd.apiHelper.GetQuotaMemoryLimit(o.QuotaURL)
+	if nil != err {
+		return nil, err
+	}
+	spaces, err := cmd.getSpaces(o.SpacesURL)
+	if nil != err {
+		return nil, err
+	}
+
+	return &org{
+		name:        o.Name,
+		memoryQuota: int(quota),
+		memoryUsage: int(usage),
+		spaces:      spaces,
+	}, nil
 }
 
 func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {

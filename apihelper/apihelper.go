@@ -1,10 +1,17 @@
 package apihelper
 
 import (
+	"errors"
+	"fmt"
+	"net/url"
 	"strconv"
 
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/cfcurl"
+)
+
+var (
+	ErrOrgNotFound = errors.New("organization not found")
 )
 
 //Organization representation
@@ -31,6 +38,7 @@ type App struct {
 //CFAPIHelper to wrap cf curl results
 type CFAPIHelper interface {
 	GetOrgs() ([]Organization, error)
+	GetOrg(string) (Organization, error)
 	GetQuotaMemoryLimit(string) (float64, error)
 	GetOrgMemoryUsage(Organization) (float64, error)
 	GetOrgSpaces(string) ([]Space, error)
@@ -72,6 +80,38 @@ func (api *APIHelper) GetOrgs() ([]Organization, error) {
 		}
 	}
 	return orgs, nil
+}
+
+//GetOrg returns a struct that represents critical fields in the JSON
+func (api *APIHelper) GetOrg(name string) (Organization, error) {
+	query := fmt.Sprintf("name:%s", name)
+	path := fmt.Sprintf("/v2/organizations?q=%s&inline-relations-depth=1", url.QueryEscape(query))
+	orgsJSON, err := cfcurl.Curl(api.cli, path)
+	if nil != err {
+		return Organization{}, err
+	}
+
+	results := int(orgsJSON["total_results"].(float64))
+	if results == 0 {
+		return Organization{}, ErrOrgNotFound
+	}
+
+	orgResource := orgsJSON["resources"].([]interface{})[0]
+	org := api.orgResourceToOrg(orgResource)
+
+	return org, nil
+}
+
+func (api *APIHelper) orgResourceToOrg(o interface{}) Organization {
+	theOrg := o.(map[string]interface{})
+	entity := theOrg["entity"].(map[string]interface{})
+	metadata := theOrg["metadata"].(map[string]interface{})
+	return Organization{
+		Name:      entity["name"].(string),
+		URL:       metadata["url"].(string),
+		QuotaURL:  entity["quota_definition_url"].(string),
+		SpacesURL: entity["spaces_url"].(string),
+	}
 }
 
 //GetQuotaMemoryLimit retruns the amount of memory (in MB) that the org is allowed

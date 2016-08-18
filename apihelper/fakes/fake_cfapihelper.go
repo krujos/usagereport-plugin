@@ -15,6 +15,12 @@ type FakeCFAPIHelper struct {
 		result1 []apihelper.Organization
 		result2 error
 	}
+	GetOrgStub    func(string) (apihelper.Organization, error)
+	getOrgMutex   sync.RWMutex
+	getOrgReturns struct {
+		result1 apihelper.Organization
+		result2 error
+	}
 	GetQuotaMemoryLimitStub        func(string) (float64, error)
 	getQuotaMemoryLimitMutex       sync.RWMutex
 	getQuotaMemoryLimitArgsForCall []struct {
@@ -67,6 +73,24 @@ func (fake *FakeCFAPIHelper) GetOrgsReturns(result1 []apihelper.Organization, re
 	fake.GetOrgsStub = nil
 	fake.getOrgsReturns = struct {
 		result1 []apihelper.Organization
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCFAPIHelper) GetOrg(name string) (apihelper.Organization, error) {
+	fake.getOrgMutex.Lock()
+	fake.getOrgMutex.Unlock()
+	if fake.GetOrgStub != nil {
+		return fake.GetOrgStub(name)
+	} else {
+		return fake.getOrgReturns.result1, fake.getOrgReturns.result2
+	}
+}
+
+func (fake *FakeCFAPIHelper) GetOrgReturns(result1 apihelper.Organization, result2 error) {
+	fake.GetOrgStub = nil
+	fake.getOrgReturns = struct {
+		result1 apihelper.Organization
 		result2 error
 	}{result1, result2}
 }
