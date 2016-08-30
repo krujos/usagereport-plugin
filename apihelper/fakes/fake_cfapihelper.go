@@ -4,55 +4,54 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/cli/plugin"
+	// "github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/usagereport-plugin/apihelper"
 )
 
 type FakeCFAPIHelper struct {
-	GetOrgsStub        func(plugin.CliConnection) ([]apihelper.Organization, error)
-	getOrgsMutex       sync.RWMutex
-	getOrgsArgsForCall []struct {
-		arg1 plugin.CliConnection
-	}
+	GetOrgsStub    func() ([]apihelper.Organization, error)
+	getOrgsMutex   sync.RWMutex
 	getOrgsReturns struct {
 		result1 []apihelper.Organization
 		result2 error
 	}
-	GetQuotaMemoryLimitStub        func(plugin.CliConnection, string) (float64, error)
+	GetOrgStub    func(string) (apihelper.Organization, error)
+	getOrgMutex   sync.RWMutex
+	getOrgReturns struct {
+		result1 apihelper.Organization
+		result2 error
+	}
+	GetQuotaMemoryLimitStub        func(string) (float64, error)
 	getQuotaMemoryLimitMutex       sync.RWMutex
 	getQuotaMemoryLimitArgsForCall []struct {
-		arg1 plugin.CliConnection
-		arg2 string
+		arg1 string
 	}
 	getQuotaMemoryLimitReturns struct {
 		result1 float64
 		result2 error
 	}
-	GetOrgMemoryUsageStub        func(plugin.CliConnection, apihelper.Organization) (float64, error)
+	GetOrgMemoryUsageStub        func(apihelper.Organization) (float64, error)
 	getOrgMemoryUsageMutex       sync.RWMutex
 	getOrgMemoryUsageArgsForCall []struct {
-		arg1 plugin.CliConnection
-		arg2 apihelper.Organization
+		arg1 apihelper.Organization
 	}
 	getOrgMemoryUsageReturns struct {
 		result1 float64
 		result2 error
 	}
-	GetOrgSpacesStub        func(plugin.CliConnection, string) ([]apihelper.Space, error)
+	GetOrgSpacesStub        func(string) ([]apihelper.Space, error)
 	getOrgSpacesMutex       sync.RWMutex
 	getOrgSpacesArgsForCall []struct {
-		arg1 plugin.CliConnection
-		arg2 string
+		arg1 string
 	}
 	getOrgSpacesReturns struct {
 		result1 []apihelper.Space
 		result2 error
 	}
-	GetSpaceAppsStub        func(plugin.CliConnection, string) ([]apihelper.App, error)
+	GetSpaceAppsStub        func(string) ([]apihelper.App, error)
 	getSpaceAppsMutex       sync.RWMutex
 	getSpaceAppsArgsForCall []struct {
-		arg1 plugin.CliConnection
-		arg2 string
+		arg1 string
 	}
 	getSpaceAppsReturns struct {
 		result1 []apihelper.App
@@ -60,29 +59,14 @@ type FakeCFAPIHelper struct {
 	}
 }
 
-func (fake *FakeCFAPIHelper) GetOrgs(arg1 plugin.CliConnection) ([]apihelper.Organization, error) {
+func (fake *FakeCFAPIHelper) GetOrgs() ([]apihelper.Organization, error) {
 	fake.getOrgsMutex.Lock()
-	fake.getOrgsArgsForCall = append(fake.getOrgsArgsForCall, struct {
-		arg1 plugin.CliConnection
-	}{arg1})
 	fake.getOrgsMutex.Unlock()
 	if fake.GetOrgsStub != nil {
-		return fake.GetOrgsStub(arg1)
+		return fake.GetOrgsStub()
 	} else {
 		return fake.getOrgsReturns.result1, fake.getOrgsReturns.result2
 	}
-}
-
-func (fake *FakeCFAPIHelper) GetOrgsCallCount() int {
-	fake.getOrgsMutex.RLock()
-	defer fake.getOrgsMutex.RUnlock()
-	return len(fake.getOrgsArgsForCall)
-}
-
-func (fake *FakeCFAPIHelper) GetOrgsArgsForCall(i int) plugin.CliConnection {
-	fake.getOrgsMutex.RLock()
-	defer fake.getOrgsMutex.RUnlock()
-	return fake.getOrgsArgsForCall[i].arg1
 }
 
 func (fake *FakeCFAPIHelper) GetOrgsReturns(result1 []apihelper.Organization, result2 error) {
@@ -93,15 +77,32 @@ func (fake *FakeCFAPIHelper) GetOrgsReturns(result1 []apihelper.Organization, re
 	}{result1, result2}
 }
 
-func (fake *FakeCFAPIHelper) GetQuotaMemoryLimit(arg1 plugin.CliConnection, arg2 string) (float64, error) {
+func (fake *FakeCFAPIHelper) GetOrg(name string) (apihelper.Organization, error) {
+	fake.getOrgMutex.Lock()
+	fake.getOrgMutex.Unlock()
+	if fake.GetOrgStub != nil {
+		return fake.GetOrgStub(name)
+	} else {
+		return fake.getOrgReturns.result1, fake.getOrgReturns.result2
+	}
+}
+
+func (fake *FakeCFAPIHelper) GetOrgReturns(result1 apihelper.Organization, result2 error) {
+	fake.GetOrgStub = nil
+	fake.getOrgReturns = struct {
+		result1 apihelper.Organization
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCFAPIHelper) GetQuotaMemoryLimit(arg1 string) (float64, error) {
 	fake.getQuotaMemoryLimitMutex.Lock()
 	fake.getQuotaMemoryLimitArgsForCall = append(fake.getQuotaMemoryLimitArgsForCall, struct {
-		arg1 plugin.CliConnection
-		arg2 string
-	}{arg1, arg2})
+		arg1 string
+	}{arg1})
 	fake.getQuotaMemoryLimitMutex.Unlock()
 	if fake.GetQuotaMemoryLimitStub != nil {
-		return fake.GetQuotaMemoryLimitStub(arg1, arg2)
+		return fake.GetQuotaMemoryLimitStub(arg1)
 	} else {
 		return fake.getQuotaMemoryLimitReturns.result1, fake.getQuotaMemoryLimitReturns.result2
 	}
@@ -113,10 +114,10 @@ func (fake *FakeCFAPIHelper) GetQuotaMemoryLimitCallCount() int {
 	return len(fake.getQuotaMemoryLimitArgsForCall)
 }
 
-func (fake *FakeCFAPIHelper) GetQuotaMemoryLimitArgsForCall(i int) (plugin.CliConnection, string) {
+func (fake *FakeCFAPIHelper) GetQuotaMemoryLimitArgsForCall(i int) string {
 	fake.getQuotaMemoryLimitMutex.RLock()
 	defer fake.getQuotaMemoryLimitMutex.RUnlock()
-	return fake.getQuotaMemoryLimitArgsForCall[i].arg1, fake.getQuotaMemoryLimitArgsForCall[i].arg2
+	return fake.getQuotaMemoryLimitArgsForCall[i].arg1
 }
 
 func (fake *FakeCFAPIHelper) GetQuotaMemoryLimitReturns(result1 float64, result2 error) {
@@ -127,15 +128,14 @@ func (fake *FakeCFAPIHelper) GetQuotaMemoryLimitReturns(result1 float64, result2
 	}{result1, result2}
 }
 
-func (fake *FakeCFAPIHelper) GetOrgMemoryUsage(arg1 plugin.CliConnection, arg2 apihelper.Organization) (float64, error) {
+func (fake *FakeCFAPIHelper) GetOrgMemoryUsage(arg1 apihelper.Organization) (float64, error) {
 	fake.getOrgMemoryUsageMutex.Lock()
 	fake.getOrgMemoryUsageArgsForCall = append(fake.getOrgMemoryUsageArgsForCall, struct {
-		arg1 plugin.CliConnection
-		arg2 apihelper.Organization
-	}{arg1, arg2})
+		arg1 apihelper.Organization
+	}{arg1})
 	fake.getOrgMemoryUsageMutex.Unlock()
 	if fake.GetOrgMemoryUsageStub != nil {
-		return fake.GetOrgMemoryUsageStub(arg1, arg2)
+		return fake.GetOrgMemoryUsageStub(arg1)
 	} else {
 		return fake.getOrgMemoryUsageReturns.result1, fake.getOrgMemoryUsageReturns.result2
 	}
@@ -147,10 +147,10 @@ func (fake *FakeCFAPIHelper) GetOrgMemoryUsageCallCount() int {
 	return len(fake.getOrgMemoryUsageArgsForCall)
 }
 
-func (fake *FakeCFAPIHelper) GetOrgMemoryUsageArgsForCall(i int) (plugin.CliConnection, apihelper.Organization) {
+func (fake *FakeCFAPIHelper) GetOrgMemoryUsageArgsForCall(i int) apihelper.Organization {
 	fake.getOrgMemoryUsageMutex.RLock()
 	defer fake.getOrgMemoryUsageMutex.RUnlock()
-	return fake.getOrgMemoryUsageArgsForCall[i].arg1, fake.getOrgMemoryUsageArgsForCall[i].arg2
+	return fake.getOrgMemoryUsageArgsForCall[i].arg1
 }
 
 func (fake *FakeCFAPIHelper) GetOrgMemoryUsageReturns(result1 float64, result2 error) {
@@ -161,15 +161,14 @@ func (fake *FakeCFAPIHelper) GetOrgMemoryUsageReturns(result1 float64, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeCFAPIHelper) GetOrgSpaces(arg1 plugin.CliConnection, arg2 string) ([]apihelper.Space, error) {
+func (fake *FakeCFAPIHelper) GetOrgSpaces(arg1 string) ([]apihelper.Space, error) {
 	fake.getOrgSpacesMutex.Lock()
 	fake.getOrgSpacesArgsForCall = append(fake.getOrgSpacesArgsForCall, struct {
-		arg1 plugin.CliConnection
-		arg2 string
-	}{arg1, arg2})
+		arg1 string
+	}{arg1})
 	fake.getOrgSpacesMutex.Unlock()
 	if fake.GetOrgSpacesStub != nil {
-		return fake.GetOrgSpacesStub(arg1, arg2)
+		return fake.GetOrgSpacesStub(arg1)
 	} else {
 		return fake.getOrgSpacesReturns.result1, fake.getOrgSpacesReturns.result2
 	}
@@ -181,10 +180,10 @@ func (fake *FakeCFAPIHelper) GetOrgSpacesCallCount() int {
 	return len(fake.getOrgSpacesArgsForCall)
 }
 
-func (fake *FakeCFAPIHelper) GetOrgSpacesArgsForCall(i int) (plugin.CliConnection, string) {
+func (fake *FakeCFAPIHelper) GetOrgSpacesArgsForCall(i int) string {
 	fake.getOrgSpacesMutex.RLock()
 	defer fake.getOrgSpacesMutex.RUnlock()
-	return fake.getOrgSpacesArgsForCall[i].arg1, fake.getOrgSpacesArgsForCall[i].arg2
+	return fake.getOrgSpacesArgsForCall[i].arg1
 }
 
 func (fake *FakeCFAPIHelper) GetOrgSpacesReturns(result1 []apihelper.Space, result2 error) {
@@ -195,15 +194,14 @@ func (fake *FakeCFAPIHelper) GetOrgSpacesReturns(result1 []apihelper.Space, resu
 	}{result1, result2}
 }
 
-func (fake *FakeCFAPIHelper) GetSpaceApps(arg1 plugin.CliConnection, arg2 string) ([]apihelper.App, error) {
+func (fake *FakeCFAPIHelper) GetSpaceApps(arg1 string) ([]apihelper.App, error) {
 	fake.getSpaceAppsMutex.Lock()
 	fake.getSpaceAppsArgsForCall = append(fake.getSpaceAppsArgsForCall, struct {
-		arg1 plugin.CliConnection
-		arg2 string
-	}{arg1, arg2})
+		arg1 string
+	}{arg1})
 	fake.getSpaceAppsMutex.Unlock()
 	if fake.GetSpaceAppsStub != nil {
-		return fake.GetSpaceAppsStub(arg1, arg2)
+		return fake.GetSpaceAppsStub(arg1)
 	} else {
 		return fake.getSpaceAppsReturns.result1, fake.getSpaceAppsReturns.result2
 	}
@@ -215,10 +213,10 @@ func (fake *FakeCFAPIHelper) GetSpaceAppsCallCount() int {
 	return len(fake.getSpaceAppsArgsForCall)
 }
 
-func (fake *FakeCFAPIHelper) GetSpaceAppsArgsForCall(i int) (plugin.CliConnection, string) {
+func (fake *FakeCFAPIHelper) GetSpaceAppsArgsForCall(i int) string {
 	fake.getSpaceAppsMutex.RLock()
 	defer fake.getSpaceAppsMutex.RUnlock()
-	return fake.getSpaceAppsArgsForCall[i].arg1, fake.getSpaceAppsArgsForCall[i].arg2
+	return fake.getSpaceAppsArgsForCall[i].arg1
 }
 
 func (fake *FakeCFAPIHelper) GetSpaceAppsReturns(result1 []apihelper.App, result2 error) {
