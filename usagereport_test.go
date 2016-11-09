@@ -5,6 +5,8 @@ import (
 
 	"github.com/krujos/usagereport-plugin/apihelper"
 	"github.com/krujos/usagereport-plugin/apihelper/fakes"
+	"io/ioutil"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -23,6 +25,37 @@ var _ = Describe("Usagereport", func() {
 			fakeAPI.GetOrgReturns(apihelper.Organization{}, errors.New("Bad Things"))
 			_, err := cmd.getOrg("test")
 			Expect(err).ToNot(BeNil())
+		})
+	})
+
+	Describe("when showing output", func() {
+		var orgs []org
+
+		BeforeEach(func() {
+			orgs = []org{
+				org{
+					name:        "test-org",
+					memoryQuota: 4096,
+					spaces: []space{space{
+						name: "test-space",
+						apps: []app{
+							app{ram: 128, instances: 2, running: true},
+							app{ram: 128, instances: 2, running: false},
+						},
+					},
+					},
+				},
+			}
+		})
+
+		It("should output in expected default human readable format", func() {
+		})
+
+		It("should output in csv format", func() {
+			expectedOutput, err := ioutil.ReadFile("fixtures/result.csv")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(cmd.printOrgsCSV(orgs)).To(Equal(string(expectedOutput)))
 		})
 	})
 

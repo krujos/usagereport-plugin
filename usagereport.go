@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/usagereport-plugin/apihelper"
@@ -35,6 +38,7 @@ type app struct {
 // contains CLI flag values
 type flagVal struct {
 	OrgName string
+	Format  string
 }
 
 func ParseFlags(args []string) flagVal {
@@ -42,6 +46,8 @@ func ParseFlags(args []string) flagVal {
 
 	// Create flags
 	orgName := flagSet.String("o", "", "-o orgName")
+	format := flagSet.String("f", "format", "-f <csv>")
+
 	err := flagSet.Parse(args[1:])
 	if err != nil {
 
@@ -49,6 +55,7 @@ func ParseFlags(args []string) flagVal {
 
 	return flagVal{
 		OrgName: string(*orgName),
+		Format:  string(*format),
 	}
 }
 
@@ -66,9 +73,10 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 				Name:     "usage-report",
 				HelpText: "Report AI and memory usage for orgs and spaces",
 				UsageDetails: plugin.Usage{
-					Usage: "cf usage-report [-o orgName]",
+					Usage: "cf usage-report [-o orgName] [-f <csv>]",
 					Options: map[string]string{
 						"o": "organization",
+						"f": "format",
 					},
 				},
 			},
@@ -81,9 +89,6 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 	flagVals := ParseFlags(args)
 
 	fmt.Println("Gathering usage information")
-
-	totalApps := 0
-	totalInstances := 0
 
 	var orgs []org
 	var err error
@@ -103,45 +108,101 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 		}
 	}
 
+	if flagVals.Format == "csv" {
+		fmt.Println(cmd.printOrgsCSV(orgs))
+	} else {
+		cmd.printOrgs(orgs)
+	}
+
+}
+
+func (cmd *UsageReportCmd) printOrgs(orgs []org) string {
+	totalApps := 0
+	totalInstances := 0
+
 	for _, org := range orgs {
-		appsPerOrg, instancesPerOrg := cmd.printOrg(org)
+		appsPerOrg := 0
+		instancesPerOrg := 0
+
+		fmt.Printf("Org %s is consuming %d MB of %d MB.\n", org.name, org.memoryUsage, org.memoryQuota)
+		for _, space := range org.spaces {
+			consumed := 0
+			instances := 0
+			runningApps := 0
+			runningInstances := 0
+			for _, app := range space.apps {
+				if app.running {
+					consumed += int(app.instances * app.ram)
+					runningApps++
+					runningInstances += app.instances
+				}
+				instances += int(app.instances)
+			}
+			fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
+				space.name, consumed, (100 * consumed / org.memoryQuota))
+			fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
+				runningApps, len(space.apps)-runningApps)
+			fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
+				runningInstances, instances-runningInstances)
+			instancesPerOrg += instances
+			appsPerOrg += len(space.apps)
+		}
+
 		totalApps += appsPerOrg
 		totalInstances += instancesPerOrg
+
 	}
 
 	fmt.Printf("You are running %d apps in %d org(s), with a total of %d instances.\n",
 		totalApps, len(orgs), totalInstances)
+
+	return " "
 }
 
-func (cmd *UsageReportCmd) printOrg(o org) (int, int) {
-	totalApps := 0
-	totalInstances := 0
+func (cmd *UsageReportCmd) printOrgsCSV(orgs []org) string {
+	var result = [][]string{}
+	var csv bytes.Buffer
 
-	fmt.Printf("Org %s is consuming %d MB of %d MB.\n", o.name, o.memoryUsage, o.memoryQuota)
-	for _, space := range o.spaces {
-		consumed := 0
-		instances := 0
-		runningApps := 0
-		runningInstances := 0
-		for _, app := range space.apps {
-			if app.running {
-				consumed += int(app.instances * app.ram)
-				runningApps++
-				runningInstances += app.instances
+	var headers = []string{"OrgName", "SpaceName", "SpaceMemoryUsed", "OrgMemoryQuota", "AppsDeployed", "AppsRunning", "AppInstancesDeployed", "AppInstancesRunning"}
+
+	result = append(result, headers)
+
+	for _, org := range orgs {
+		for _, space := range org.spaces {
+			spaceMemoryUsed := 0
+			appsDeployed := len(space.apps)
+			appInstancesDeployed := 0
+			appsRunning := 0
+			appInstancesRunning := 0
+			for _, app := range space.apps {
+				if app.running {
+					spaceMemoryUsed += int(app.instances * app.ram)
+					appsRunning++
+					appInstancesRunning += app.instances
+				}
+				appInstancesDeployed += int(app.instances)
 			}
-			instances += int(app.instances)
+			spaceResult := []string{
+				org.name,
+				space.name,
+				strconv.Itoa(spaceMemoryUsed),
+				strconv.Itoa(org.memoryQuota),
+				strconv.Itoa(appsDeployed),
+				strconv.Itoa(appsRunning),
+				strconv.Itoa(appInstancesDeployed),
+				strconv.Itoa(appInstancesRunning),
+			}
+
+			result = append(result, spaceResult)
 		}
-		fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
-			space.name, consumed, (100 * consumed / o.memoryQuota))
-		fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
-			runningApps, len(space.apps)-runningApps)
-		fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
-			runningInstances, instances-runningInstances)
-		totalInstances += instances
-		totalApps += len(space.apps)
 	}
 
-	return totalApps, totalInstances
+	for i := range result {
+		csv.WriteString(strings.Join(result[i], ", "))
+		csv.WriteString("\n")
+	}
+
+	return csv.String()
 }
 
 func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
