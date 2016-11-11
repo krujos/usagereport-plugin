@@ -6,6 +6,8 @@ This CF CLI Plugin to shows memory consumption and application instances for eac
 
 #Usage
 
+For human readable output:
+
 ```
 ➜  usagereport-plugin git:(master) ✗ cf usage-report
 Gathering usage information
@@ -55,6 +57,14 @@ Org pcfp is consuming 7296 MB of 102400 MB.
 		1 apps: 1 running 0 stopped
 		1 instances: 1 running, 0 stopped
 You are running 18 apps in 3 orgs, with a total of 27 instances.
+```
+
+CSV output:
+
+```
+➜  usagereport-plugin git:(master) ✗ cf usage-report -f csv
+OrgName, SpaceName, SpaceMemoryUsed, OrgMemoryQuota, AppsDeployed, AppsRunning, AppInstancesDeployed, AppInstancesRunning
+test-org, test-space, 256, 4096, 2, 1, 3, 2
 ```
 
 ##Installation
