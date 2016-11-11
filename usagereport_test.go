@@ -5,7 +5,6 @@ import (
 
 	"github.com/krujos/usagereport-plugin/apihelper"
 	"github.com/krujos/usagereport-plugin/apihelper/fakes"
-	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,37 +24,6 @@ var _ = Describe("Usagereport", func() {
 			fakeAPI.GetOrgReturns(apihelper.Organization{}, errors.New("Bad Things"))
 			_, err := cmd.getOrg("test")
 			Expect(err).ToNot(BeNil())
-		})
-	})
-
-	Describe("when showing output", func() {
-		var orgs []org
-
-		BeforeEach(func() {
-			orgs = []org{
-				org{
-					name:        "test-org",
-					memoryQuota: 4096,
-					spaces: []space{space{
-						name: "test-space",
-						apps: []app{
-							app{ram: 128, instances: 2, running: true},
-							app{ram: 128, instances: 2, running: false},
-						},
-					},
-					},
-				},
-			}
-		})
-
-		It("should output in expected default human readable format", func() {
-		})
-
-		It("should output in csv format", func() {
-			expectedOutput, err := ioutil.ReadFile("fixtures/result.csv")
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(cmd.printOrgsCSV(orgs)).To(Equal(string(expectedOutput)))
 		})
 	})
 
@@ -120,22 +88,22 @@ var _ = Describe("Usagereport", func() {
 			Expect(err).To(BeNil())
 			Expect(len(orgs)).To(Equal(1))
 			org := orgs[0]
-			Expect(org.memoryQuota).To(Equal(2))
-			Expect(org.memoryUsage).To(Equal(1))
+			Expect(org.MemoryQuota).To(Equal(2))
+			Expect(org.MemoryUsage).To(Equal(1))
 		})
 
 		It("Should return an org with 1 space", func() {
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{apihelper.Space{}, apihelper.Space{}}, nil)
 			orgs, _ := cmd.getOrgs()
-			Expect(len(orgs[0].spaces)).To(Equal(2))
+			Expect(len(orgs[0].Spaces)).To(Equal(2))
 		})
 
 		It("Should not choke on an org with no spaces", func() {
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{}, nil)
 			orgs, _ := cmd.getOrgs()
-			Expect(len(orgs[0].spaces)).To(Equal(0))
+			Expect(len(orgs[0].Spaces)).To(Equal(0))
 		})
 
 		It("Should return two apps from a space", func() {
@@ -151,8 +119,8 @@ var _ = Describe("Usagereport", func() {
 				nil)
 			orgs, _ := cmd.getOrgs()
 			org := orgs[0]
-			space := org.spaces[0]
-			apps := space.apps
+			space := org.Spaces[0]
+			apps := space.Apps
 			Expect(len(apps)).To(Equal(3))
 		})
 
@@ -169,10 +137,10 @@ var _ = Describe("Usagereport", func() {
 
 			orgs, _ := cmd.getOrgs()
 			org := orgs[0]
-			space := org.spaces[0]
-			apps := space.apps
-			Expect(apps[0].running).To(BeTrue())
-			Expect(apps[1].running).To(BeFalse())
+			space := org.Spaces[0]
+			apps := space.Apps
+			Expect(apps[0].Running).To(BeTrue())
+			Expect(apps[1].Running).To(BeFalse())
 		})
 	})
 })
