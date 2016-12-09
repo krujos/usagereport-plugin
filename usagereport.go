@@ -7,6 +7,7 @@ import (
 
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/usagereport-plugin/apihelper"
+	"github.com/krujos/usagereport-plugin/models"
 )
 
 //UsageReportCmd the plugin
@@ -14,27 +15,10 @@ type UsageReportCmd struct {
 	apiHelper apihelper.CFAPIHelper
 }
 
-type org struct {
-	name        string
-	memoryQuota int
-	memoryUsage int
-	spaces      []space
-}
-
-type space struct {
-	apps []app
-	name string
-}
-
-type app struct {
-	ram       int
-	instances int
-	running   bool
-}
-
 // contains CLI flag values
 type flagVal struct {
 	OrgName string
+	Format  string
 }
 
 func ParseFlags(args []string) flagVal {
@@ -42,6 +26,8 @@ func ParseFlags(args []string) flagVal {
 
 	// Create flags
 	orgName := flagSet.String("o", "", "-o orgName")
+	format := flagSet.String("f", "format", "-f <csv>")
+
 	err := flagSet.Parse(args[1:])
 	if err != nil {
 
@@ -49,6 +35,7 @@ func ParseFlags(args []string) flagVal {
 
 	return flagVal{
 		OrgName: string(*orgName),
+		Format:  string(*format),
 	}
 }
 
@@ -66,9 +53,10 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 				Name:     "usage-report",
 				HelpText: "Report AI and memory usage for orgs and spaces",
 				UsageDetails: plugin.Usage{
-					Usage: "cf usage-report [-o orgName]",
+					Usage: "cf usage-report [-o orgName] [-f <csv>]",
 					Options: map[string]string{
 						"o": "organization",
+						"f": "format",
 					},
 				},
 			},
@@ -80,13 +68,9 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 	flagVals := ParseFlags(args)
 
-	fmt.Println("Gathering usage information")
-
-	totalApps := 0
-	totalInstances := 0
-
-	var orgs []org
+	var orgs []models.Org
 	var err error
+	var report models.Report
 
 	if flagVals.OrgName != "" {
 		org, err := cmd.getOrg(flagVals.OrgName)
@@ -94,7 +78,7 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		orgs = append(orgs, *org)
+		orgs = append(orgs, org)
 	} else {
 		orgs, err = cmd.getOrgs()
 		if nil != err {
@@ -103,128 +87,96 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 		}
 	}
 
-	for _, org := range orgs {
-		appsPerOrg, instancesPerOrg := cmd.printOrg(org)
-		totalApps += appsPerOrg
-		totalInstances += instancesPerOrg
-	}
+	report.Orgs = orgs
 
-	fmt.Printf("You are running %d apps in %d org(s), with a total of %d instances.\n",
-		totalApps, len(orgs), totalInstances)
+	if flagVals.Format == "csv" {
+		fmt.Println(report.CSV())
+	} else {
+		fmt.Println(report.String())
+	}
 }
 
-func (cmd *UsageReportCmd) printOrg(o org) (int, int) {
-	totalApps := 0
-	totalInstances := 0
-
-	fmt.Printf("Org %s is consuming %d MB of %d MB.\n", o.name, o.memoryUsage, o.memoryQuota)
-	for _, space := range o.spaces {
-		consumed := 0
-		instances := 0
-		runningApps := 0
-		runningInstances := 0
-		for _, app := range space.apps {
-			if app.running {
-				consumed += int(app.instances * app.ram)
-				runningApps++
-				runningInstances += app.instances
-			}
-			instances += int(app.instances)
-		}
-		fmt.Printf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
-			space.name, consumed, (100 * consumed / o.memoryQuota))
-		fmt.Printf("\t\t%d apps: %d running %d stopped\n", len(space.apps),
-			runningApps, len(space.apps)-runningApps)
-		fmt.Printf("\t\t%d instances: %d running, %d stopped\n", instances,
-			runningInstances, instances-runningInstances)
-		totalInstances += instances
-		totalApps += len(space.apps)
-	}
-
-	return totalApps, totalInstances
-}
-
-func (cmd *UsageReportCmd) getOrgs() ([]org, error) {
+func (cmd *UsageReportCmd) getOrgs() ([]models.Org, error) {
 	rawOrgs, err := cmd.apiHelper.GetOrgs()
 	if nil != err {
 		return nil, err
 	}
 
-	var orgs = []org{}
+	var orgs = []models.Org{}
 
 	for _, o := range rawOrgs {
 		orgDetails, err := cmd.getOrgDetails(o)
 		if err != nil {
 			return nil, err
 		}
-		orgs = append(orgs, *orgDetails)
+		orgs = append(orgs, orgDetails)
 	}
 	return orgs, nil
 }
 
-func (cmd *UsageReportCmd) getOrg(name string) (*org, error) {
+func (cmd *UsageReportCmd) getOrg(name string) (models.Org, error) {
 	rawOrg, err := cmd.apiHelper.GetOrg(name)
 	if nil != err {
-		return nil, err
+		return models.Org{}, err
 	}
 
 	return cmd.getOrgDetails(rawOrg)
 }
 
-func (cmd *UsageReportCmd) getOrgDetails(o apihelper.Organization) (*org, error) {
+func (cmd *UsageReportCmd) getOrgDetails(o apihelper.Organization) (models.Org, error) {
 	usage, err := cmd.apiHelper.GetOrgMemoryUsage(o)
 	if nil != err {
-		return nil, err
+		return models.Org{}, err
 	}
 	quota, err := cmd.apiHelper.GetQuotaMemoryLimit(o.QuotaURL)
 	if nil != err {
-		return nil, err
+		return models.Org{}, err
 	}
 	spaces, err := cmd.getSpaces(o.SpacesURL)
 	if nil != err {
-		return nil, err
+		return models.Org{}, err
 	}
 
-	return &org{
-		name:        o.Name,
-		memoryQuota: int(quota),
-		memoryUsage: int(usage),
-		spaces:      spaces,
+	return models.Org{
+		Name:        o.Name,
+		MemoryQuota: int(quota),
+		MemoryUsage: int(usage),
+		Spaces:      spaces,
 	}, nil
 }
 
-func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]space, error) {
+func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]models.Space, error) {
 	rawSpaces, err := cmd.apiHelper.GetOrgSpaces(spaceURL)
 	if nil != err {
 		return nil, err
 	}
-	var spaces = []space{}
+	var spaces = []models.Space{}
 	for _, s := range rawSpaces {
 		apps, err := cmd.getApps(s.AppsURL)
 		if nil != err {
 			return nil, err
 		}
 		spaces = append(spaces,
-			space{
-				apps: apps,
-				name: s.Name,
+			models.Space{
+				Apps: apps,
+				Name: s.Name,
 			},
 		)
 	}
 	return spaces, nil
 }
 
-func (cmd *UsageReportCmd) getApps(appsURL string) ([]app, error) {
+func (cmd *UsageReportCmd) getApps(appsURL string) ([]models.App, error) {
 	rawApps, err := cmd.apiHelper.GetSpaceApps(appsURL)
 	if nil != err {
 		return nil, err
 	}
-	var apps = []app{}
+	var apps = []models.App{}
 	for _, a := range rawApps {
-		apps = append(apps, app{
-			instances: int(a.Instances),
-			ram:       int(a.RAM),
-			running:   a.Running,
+		apps = append(apps, models.App{
+			Instances: int(a.Instances),
+			Ram:       int(a.RAM),
+			Running:   a.Running,
 		})
 	}
 	return apps, nil

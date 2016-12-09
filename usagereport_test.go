@@ -5,6 +5,7 @@ import (
 
 	"github.com/krujos/usagereport-plugin/apihelper"
 	"github.com/krujos/usagereport-plugin/apihelper/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -87,22 +88,22 @@ var _ = Describe("Usagereport", func() {
 			Expect(err).To(BeNil())
 			Expect(len(orgs)).To(Equal(1))
 			org := orgs[0]
-			Expect(org.memoryQuota).To(Equal(2))
-			Expect(org.memoryUsage).To(Equal(1))
+			Expect(org.MemoryQuota).To(Equal(2))
+			Expect(org.MemoryUsage).To(Equal(1))
 		})
 
 		It("Should return an org with 1 space", func() {
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{apihelper.Space{}, apihelper.Space{}}, nil)
 			orgs, _ := cmd.getOrgs()
-			Expect(len(orgs[0].spaces)).To(Equal(2))
+			Expect(len(orgs[0].Spaces)).To(Equal(2))
 		})
 
 		It("Should not choke on an org with no spaces", func() {
 			fakeAPI.GetOrgSpacesReturns(
 				[]apihelper.Space{}, nil)
 			orgs, _ := cmd.getOrgs()
-			Expect(len(orgs[0].spaces)).To(Equal(0))
+			Expect(len(orgs[0].Spaces)).To(Equal(0))
 		})
 
 		It("Should return two apps from a space", func() {
@@ -118,8 +119,8 @@ var _ = Describe("Usagereport", func() {
 				nil)
 			orgs, _ := cmd.getOrgs()
 			org := orgs[0]
-			space := org.spaces[0]
-			apps := space.apps
+			space := org.Spaces[0]
+			apps := space.Apps
 			Expect(len(apps)).To(Equal(3))
 		})
 
@@ -136,10 +137,10 @@ var _ = Describe("Usagereport", func() {
 
 			orgs, _ := cmd.getOrgs()
 			org := orgs[0]
-			space := org.spaces[0]
-			apps := space.apps
-			Expect(apps[0].running).To(BeTrue())
-			Expect(apps[1].running).To(BeFalse())
+			space := org.Spaces[0]
+			apps := space.Apps
+			Expect(apps[0].Running).To(BeTrue())
+			Expect(apps[1].Running).To(BeFalse())
 		})
 	})
 })
