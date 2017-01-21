@@ -161,7 +161,7 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]models.Space, error) {
 
 		var quota apihelper.Quota
 		quota.RAM = -1;
-		quota.Name = "none";
+		quota.Name = "";
 		if s.SpaceQuotaURL != "" {
 			quota, err = cmd.apiHelper.GetQuotaPlan(s.SpaceQuotaURL)
 			if nil != err {
