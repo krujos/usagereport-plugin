@@ -1,7 +1,4 @@
 usagereport-plugin
-usagereport-plugin-linux
 usagereport.go.bak
 usagereport.go.bak
 .DS_Store
-.idea/
-compile.sh
