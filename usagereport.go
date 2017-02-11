@@ -26,7 +26,7 @@ func ParseFlags(args []string) flagVal {
 
 	// Create flags
 	orgName := flagSet.String("o", "", "-o orgName")
-	format := flagSet.String("f", "format", "-f <csv>")
+	format := flagSet.String("f", "format", "-f <csv> / -f <json>")
 
 	err := flagSet.Parse(args[1:])
 	if err != nil {
@@ -46,14 +46,14 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 4,
-			Build: 1,
+			Build: 2,
 		},
 		Commands: []plugin.Command{
 			{
 				Name:     "usage-report",
 				HelpText: "Report AI and memory usage for orgs and spaces",
 				UsageDetails: plugin.Usage{
-					Usage: "cf usage-report [-o orgName] [-f <csv>]",
+					Usage: "cf usage-report [-o orgName] [-f <csv>] [-f <json>]",
 					Options: map[string]string{
 						"o": "organization",
 						"f": "format",
@@ -91,6 +91,8 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 
 	if flagVals.Format == "csv" {
 		fmt.Println(report.CSV())
+	} else 	if flagVals.Format == "json" {
+		fmt.Println(report.JSON())
 	} else {
 		fmt.Println(report.String())
 	}
@@ -156,10 +158,25 @@ func (cmd *UsageReportCmd) getSpaces(spaceURL string) ([]models.Space, error) {
 		if nil != err {
 			return nil, err
 		}
+
+		var quota apihelper.Quota
+		quota.RAM = -1;
+		quota.Name = "";
+		if s.SpaceQuotaURL != "" {
+			quota, err = cmd.apiHelper.GetQuotaPlan(s.SpaceQuotaURL)
+			if nil != err {
+				return nil, err
+			}
+		}
+
+		var usage = cmd.getAllotedMem(apps)
 		spaces = append(spaces,
 			models.Space{
 				Apps: apps,
 				Name: s.Name,
+				MemoryQuota: int(quota.RAM),
+				QuotaPlan: quota.Name,
+				MemoryUsage: int(usage),
 			},
 		)
 	}
@@ -174,6 +191,7 @@ func (cmd *UsageReportCmd) getApps(appsURL string) ([]models.App, error) {
 	var apps = []models.App{}
 	for _, a := range rawApps {
 		apps = append(apps, models.App{
+			Name:      a.Name,
 			Instances: int(a.Instances),
 			Ram:       int(a.RAM),
 			Running:   a.Running,
@@ -192,4 +210,12 @@ func (cmd *UsageReportCmd) Run(cli plugin.CliConnection, args []string) {
 
 func main() {
 	plugin.Start(new(UsageReportCmd))
+}
+
+func (cmd *UsageReportCmd) getAllotedMem(apps []models.App) (int) {
+	var memUsed = 0
+	for _, a := range apps {
+		memUsed += int(a.Instances * a.Ram)
+	}
+	return memUsed
 }

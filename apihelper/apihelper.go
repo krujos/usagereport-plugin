@@ -26,13 +26,26 @@ type Organization struct {
 type Space struct {
 	Name    string
 	AppsURL string
+	SpaceQuotaURL string
 }
 
 //App representation
 type App struct {
+	Name    string
 	Instances float64
 	RAM       float64
 	Running   bool
+}
+
+//Quota plan representation
+type Quota struct {
+	Name                string
+	Services            float64
+	Routes              float64
+	RAM                 float64
+	InstanceMemoryLimit float64
+	InstancesLimit      float64
+	PaidPlansAlllowed   bool
 }
 
 //CFAPIHelper to wrap cf curl results
@@ -40,6 +53,7 @@ type CFAPIHelper interface {
 	GetOrgs() ([]Organization, error)
 	GetOrg(string) (Organization, error)
 	GetQuotaMemoryLimit(string) (float64, error)
+	GetQuotaPlan(quotaURL string) (Quota, error)
 	GetOrgMemoryUsage(Organization) (float64, error)
 	GetOrgSpaces(string) ([]Space, error)
 	GetSpaceApps(string) ([]App, error)
@@ -123,6 +137,24 @@ func (api *APIHelper) GetQuotaMemoryLimit(quotaURL string) (float64, error) {
 	return quotaJSON["entity"].(map[string]interface{})["memory_limit"].(float64), nil
 }
 
+//GetQuotaPlan returns the plan details
+func (api *APIHelper) GetQuotaPlan(quotaURL string) (Quota, error) {
+	quotaJSON, err := cfcurl.Curl(api.cli, quotaURL)
+	if nil != err {
+		return Quota{}, err
+	}
+	entity := quotaJSON["entity"].(map[string]interface{})
+	return Quota{
+		Name:                entity["name"].(string),
+		Services:            entity["total_services"].(float64),
+		Routes:              entity["total_routes"].(float64),
+		RAM:                 entity["memory_limit"].(float64),
+		InstanceMemoryLimit: entity["instance_memory_limit"].(float64),
+		InstancesLimit:      entity["app_instance_limit"].(float64),
+		PaidPlansAlllowed:   entity["non_basic_services_allowed"].(bool),
+	}, nil
+}
+
 //GetOrgMemoryUsage returns the amount of memory (in MB) that the org is consuming
 func (api *APIHelper) GetOrgMemoryUsage(org Organization) (float64, error) {
 	usageJSON, err := cfcurl.Curl(api.cli, org.URL+"/memory_usage")
@@ -142,10 +174,20 @@ func (api *APIHelper) GetOrgSpaces(spacesURL string) ([]Space, error) {
 	for _, s := range spacesJSON["resources"].([]interface{}) {
 		theSpace := s.(map[string]interface{})
 		entity := theSpace["entity"].(map[string]interface{})
+
+		var spaceQuota = entity["space_quota_definition_url"]
+		// entity["space_quota_definition_url"].(map[string]interface{})["space_quota_definition_url"].(float64), nil
+		if (spaceQuota == nil) {
+			spaceQuota = ""
+		} else {
+			spaceQuota = entity["space_quota_definition_url"].(string)
+		}
+
 		spaces = append(spaces,
 			Space{
-				AppsURL: entity["apps_url"].(string),
-				Name:    entity["name"].(string),
+				AppsURL:       entity["apps_url"].(string),
+				Name:          entity["name"].(string),
+				SpaceQuotaURL: spaceQuota.(string),
 			})
 	}
 	return spaces, nil
@@ -163,6 +205,7 @@ func (api *APIHelper) GetSpaceApps(appsURL string) ([]App, error) {
 		entity := theApp["entity"].(map[string]interface{})
 		apps = append(apps,
 			App{
+				Name:      entity["name"].(string),
 				Instances: entity["instances"].(float64),
 				RAM:       entity["memory"].(float64),
 				Running:   "STARTED" == entity["state"].(string),

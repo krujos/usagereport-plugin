@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"encoding/json"
 )
 
 type Org struct {
@@ -17,9 +18,13 @@ type Org struct {
 type Space struct {
 	Apps []App
 	Name string
+	MemoryQuota int
+	MemoryUsage int
+	QuotaPlan string
 }
 
 type App struct {
+	Name      string
 	Ram       int
 	Instances int
 	Running   bool
@@ -108,6 +113,19 @@ func (report *Report) String() string {
 			response.WriteString(
 				fmt.Sprintf("\t\t%d instances: %d running, %d stopped\n", spaceInstancesCount,
 					spaceRunningInstancesCount, spaceInstancesCount-spaceRunningInstancesCount))
+
+			// if a space has no space quota plan assigned, then print the org quota
+			if (space.MemoryQuota <= 0) {
+				//response.WriteString(
+				//	fmt.Sprintf("\t\t%d MB memory consumed (%d%%) of org quota (%d MB); space has no quota plan assigned. \n",
+				//		spaceConsumedMemory, (100 * spaceConsumedMemory / org.MemoryQuota), org.MemoryQuota ))
+			} else {
+				response.WriteString(
+					fmt.Sprintf("\t\t%d MB memory consumed (%d%%) of space quota (%d MB), %s plan\n",
+						spaceConsumedMemory, (100 * spaceConsumedMemory / space.MemoryQuota), space.MemoryQuota, space.QuotaPlan ))
+			}
+
+
 		}
 
 		totalApps += org.AppsCount()
@@ -125,7 +143,8 @@ func (report *Report) CSV() string {
 	var rows = [][]string{}
 	var csv bytes.Buffer
 
-	var headers = []string{"OrgName", "SpaceName", "SpaceMemoryUsed", "OrgMemoryQuota", "AppsDeployed", "AppsRunning", "AppInstancesDeployed", "AppInstancesRunning"}
+	var headers = []string{"OrgName", "SpaceName", "SpaceMemoryUsed", "OrgMemoryQuota", "SpaceMemoryQuota",
+				"SpaceMemoryAllotted", "QuotaPlan", "AppsDeployed", "AppsRunning", "AppInstancesDeployed", "AppInstancesRunning"}
 
 	rows = append(rows, headers)
 
@@ -133,11 +152,18 @@ func (report *Report) CSV() string {
 		for _, space := range org.Spaces {
 			appsDeployed := len(space.Apps)
 
+			spaceConsumedMemory := space.ConsumedMemory()
+
+			// if no space quota plan is used, then space quota will be displayed as (-1);
+			spaceMemoryQuota := space.MemoryQuota
 			spaceResult := []string{
 				org.Name,
 				space.Name,
-				strconv.Itoa(space.ConsumedMemory()),
+				strconv.Itoa(spaceConsumedMemory),
 				strconv.Itoa(org.MemoryQuota),
+				strconv.Itoa(spaceMemoryQuota),
+				strconv.Itoa(spaceConsumedMemory),
+				space.QuotaPlan,
 				strconv.Itoa(appsDeployed),
 				strconv.Itoa(space.RunningAppsCount()),
 				strconv.Itoa(space.InstancesCount()),
@@ -154,4 +180,14 @@ func (report *Report) CSV() string {
 	}
 
 	return csv.String()
+}
+
+func (report *Report) JSON() string {
+	var out bytes.Buffer
+	b, _ := json.Marshal(report.Orgs)
+	err := json.Indent(&out, b, "", "\t")
+	if err != nil {
+		fmt.Println(" Recevied error formatting json output.")
+	}
+	return out.String()
 }
