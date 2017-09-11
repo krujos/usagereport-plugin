@@ -134,39 +134,55 @@ func (api *APIHelper) GetOrgMemoryUsage(org Organization) (float64, error) {
 
 //GetOrgSpaces returns the spaces in an org.
 func (api *APIHelper) GetOrgSpaces(spacesURL string) ([]Space, error) {
-	spacesJSON, err := cfcurl.Curl(api.cli, spacesURL)
-	if nil != err {
-		return nil, err
-	}
+	nextURL := spacesURL
 	spaces := []Space{}
-	for _, s := range spacesJSON["resources"].([]interface{}) {
-		theSpace := s.(map[string]interface{})
-		entity := theSpace["entity"].(map[string]interface{})
-		spaces = append(spaces,
-			Space{
-				AppsURL: entity["apps_url"].(string),
-				Name:    entity["name"].(string),
-			})
+	for nextURL != "" {
+		spacesJSON, err := cfcurl.Curl(api.cli, nextURL)
+		if nil != err {
+			return nil, err
+		}
+		for _, s := range spacesJSON["resources"].([]interface{}) {
+			theSpace := s.(map[string]interface{})
+			entity := theSpace["entity"].(map[string]interface{})
+			spaces = append(spaces,
+				Space{
+					AppsURL: entity["apps_url"].(string),
+					Name:    entity["name"].(string),
+				})
+		}
+		if next, ok := spacesJSON["next_url"].(string); ok {
+			nextURL = next
+		} else {
+			nextURL = ""
+		}
 	}
 	return spaces, nil
 }
 
 //GetSpaceApps returns the apps in a space
 func (api *APIHelper) GetSpaceApps(appsURL string) ([]App, error) {
-	appsJSON, err := cfcurl.Curl(api.cli, appsURL)
-	if nil != err {
-		return nil, err
-	}
+	nextURL := appsURL
 	apps := []App{}
-	for _, a := range appsJSON["resources"].([]interface{}) {
-		theApp := a.(map[string]interface{})
-		entity := theApp["entity"].(map[string]interface{})
-		apps = append(apps,
-			App{
-				Instances: entity["instances"].(float64),
-				RAM:       entity["memory"].(float64),
-				Running:   "STARTED" == entity["state"].(string),
-			})
+	for nextURL != "" {
+		appsJSON, err := cfcurl.Curl(api.cli, nextURL)
+		if nil != err {
+			return nil, err
+		}
+		for _, a := range appsJSON["resources"].([]interface{}) {
+			theApp := a.(map[string]interface{})
+			entity := theApp["entity"].(map[string]interface{})
+			apps = append(apps,
+				App{
+					Instances: entity["instances"].(float64),
+					RAM:			 entity["memory"].(float64),
+					Running:	 "STARTED" == entity["state"].(string),
+				})
+		}
+		if next, ok := appsJSON["next_url"].(string); ok {
+			nextURL = next
+		} else {
+			nextURL = ""
+		}
 	}
 	return apps, nil
 }
