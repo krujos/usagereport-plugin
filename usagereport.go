@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cloudfoundry/cli/plugin"
 	"github.com/krujos/usagereport-plugin/apihelper"
@@ -17,8 +18,20 @@ type UsageReportCmd struct {
 
 // contains CLI flag values
 type flagVal struct {
-	OrgName string
-	Format  string
+	OrgName      string
+	Format       string
+	ExcludedOrgs []string
+}
+
+type multipleFlagValues []string
+
+func (i *multipleFlagValues) String() string {
+	return "multiple flag values"
+}
+
+func (i *multipleFlagValues) Set(value string) error {
+	*i = append(*i, value)
+	return nil
 }
 
 func ParseFlags(args []string) flagVal {
@@ -28,14 +41,18 @@ func ParseFlags(args []string) flagVal {
 	orgName := flagSet.String("o", "", "-o orgName")
 	format := flagSet.String("f", "format", "-f <csv>")
 
+	var orgsToExclude multipleFlagValues
+	flagSet.Var(&orgsToExclude, "e", "-e orgName to exclude (multiple)")
+
 	err := flagSet.Parse(args[1:])
 	if err != nil {
 
 	}
 
 	return flagVal{
-		OrgName: string(*orgName),
-		Format:  string(*format),
+		OrgName:      string(*orgName),
+		Format:       string(*format),
+		ExcludedOrgs: orgsToExclude,
 	}
 }
 
@@ -53,10 +70,11 @@ func (cmd *UsageReportCmd) GetMetadata() plugin.PluginMetadata {
 				Name:     "usage-report",
 				HelpText: "Report AI and memory usage for orgs and spaces",
 				UsageDetails: plugin.Usage{
-					Usage: "cf usage-report [-o orgName] [-f <csv>]",
+					Usage: "cf usage-report [-o orgName] [-f <csv>] [-e orgNameToExclude]",
 					Options: map[string]string{
 						"o": "organization",
 						"f": "format",
+						"e": "organization(s) to exclude",
 					},
 				},
 			},
@@ -87,13 +105,36 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 		}
 	}
 
-	report.Orgs = orgs
+	report.Orgs = cmd.filterOrgs(orgs, flagVals.ExcludedOrgs)
 
 	if flagVals.Format == "csv" {
 		fmt.Println(report.CSV())
 	} else {
 		fmt.Println(report.String())
 	}
+}
+
+func (cmd *UsageReportCmd) filterOrgs(orgs []models.Org, excludedOrgs []string) []models.Org {
+	var filtered = []models.Org{}
+
+	for _, o := range orgs {
+		if contains(excludedOrgs, o.Name) {
+
+		} else {
+			filtered = append(filtered, o)
+		}
+	}
+
+	return filtered
+}
+
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if strings.TrimSpace(x) == strings.TrimSpace(n) {
+			return true
+		}
+	}
+	return false
 }
 
 func (cmd *UsageReportCmd) getOrgs() ([]models.Org, error) {
@@ -111,6 +152,7 @@ func (cmd *UsageReportCmd) getOrgs() ([]models.Org, error) {
 		}
 		orgs = append(orgs, orgDetails)
 	}
+
 	return orgs, nil
 }
 
