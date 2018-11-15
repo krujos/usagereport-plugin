@@ -87,7 +87,9 @@ func (report *Report) String() string {
 	var response bytes.Buffer
 
 	totalApps := 0
+	totalAppsRunning := 0
 	totalInstances := 0
+	totalInstancesRunning := 0
 
 	for _, org := range report.Orgs {
 		response.WriteString(fmt.Sprintf("Org %s is consuming %d MB of %d MB.\n",
@@ -99,15 +101,20 @@ func (report *Report) String() string {
 			spaceRunningInstancesCount := space.RunningInstancesCount()
 			spaceConsumedMemory := space.ConsumedMemory()
 
+			spaceStoppedInstancesCount := spaceInstancesCount - spaceRunningInstancesCount
+
 			response.WriteString(
 				fmt.Sprintf("\tSpace %s is consuming %d MB memory (%d%%) of org quota.\n",
 					space.Name, spaceConsumedMemory, (100 * spaceConsumedMemory / org.MemoryQuota)))
 			response.WriteString(
-				fmt.Sprintf("\t\t%d apps: %d running %d stopped\n", len(space.Apps),
+				fmt.Sprintf("\t\t%d apps: %d running, %d stopped\n", len(space.Apps),
 					spaceRunningAppsCount, len(space.Apps)-spaceRunningAppsCount))
 			response.WriteString(
 				fmt.Sprintf("\t\t%d instances: %d running, %d stopped\n", spaceInstancesCount,
-					spaceRunningInstancesCount, spaceInstancesCount-spaceRunningInstancesCount))
+					spaceRunningInstancesCount, spaceStoppedInstancesCount))
+
+			totalInstancesRunning += spaceRunningInstancesCount
+			totalAppsRunning += spaceRunningAppsCount
 		}
 
 		totalApps += org.AppsCount()
@@ -117,6 +124,12 @@ func (report *Report) String() string {
 	response.WriteString(
 		fmt.Sprintf("You are running %d apps in %d org(s), with a total of %d instances.\n",
 			totalApps, len(report.Orgs), totalInstances))
+	response.WriteString(
+		fmt.Sprintf("\t\t%d apps: %d running, %d stopped\n",
+			totalApps, totalAppsRunning, totalApps-totalAppsRunning))
+	response.WriteString(
+		fmt.Sprintf("\t\t%d instances: %d running, %d stopped\n",
+			totalInstances, totalInstancesRunning, totalInstances-totalInstancesRunning))
 
 	return response.String()
 }
