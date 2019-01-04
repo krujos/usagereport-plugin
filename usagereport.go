@@ -15,17 +15,33 @@ type UsageReportCmd struct {
 	apiHelper apihelper.CFAPIHelper
 }
 
+// contains list of org names
+type orgNames []string
+
+func (*orgNames) String() string {
+	// no need for a sophisticated implementation in this case
+	return ""
+}
+
+func (o *orgNames) Set(value string) error {
+	*o = append(*o, value)
+
+	// allow more than one org name
+	return nil
+}
+
 // contains CLI flag values
 type flagVal struct {
-	OrgName string
-	Format  string
+	OrgNames orgNames
+	Format   string
 }
 
 func ParseFlags(args []string) flagVal {
 	flagSet := flag.NewFlagSet(args[0], flag.ContinueOnError)
 
 	// Create flags
-	orgName := flagSet.String("o", "", "-o orgName")
+	var orgs orgNames
+	flagSet.Var(&orgs, "o", "-o orgName [-o orgName2 ...]")
 	format := flagSet.String("f", "format", "-f <csv>")
 
 	err := flagSet.Parse(args[1:])
@@ -34,8 +50,8 @@ func ParseFlags(args []string) flagVal {
 	}
 
 	return flagVal{
-		OrgName: string(*orgName),
-		Format:  string(*format),
+		OrgNames: orgs,
+		Format:   string(*format),
 	}
 }
 
@@ -72,13 +88,15 @@ func (cmd *UsageReportCmd) UsageReportCommand(args []string) {
 	var err error
 	var report models.Report
 
-	if flagVals.OrgName != "" {
-		org, err := cmd.getOrg(flagVals.OrgName)
-		if nil != err {
-			fmt.Println(err)
-			os.Exit(1)
+	if flagVals.OrgNames != nil {
+		for _, orgName := range flagVals.OrgNames {
+			org, err := cmd.getOrg(orgName)
+			if nil != err {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			orgs = append(orgs, org)
 		}
-		orgs = append(orgs, org)
 	} else {
 		orgs, err = cmd.getOrgs()
 		if nil != err {
