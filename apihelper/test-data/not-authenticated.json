@@ -1,0 +1,5 @@
+{
+   "description": "Authentication error",
+   "error_code": "CF-NotAuthenticated",
+   "code": 10002
+}
