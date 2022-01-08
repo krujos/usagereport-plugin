@@ -54,9 +54,20 @@ func New(cli plugin.CliConnection) CFAPIHelper {
 	return &APIHelper{cli}
 }
 
+func cfCurl(cli plugin.CliConnection, path string) (map[string]interface{}, error) {
+	orgsJSON, err := cfcurl.Curl(cli, path)
+
+	if orgsJSON["error_code"] != nil {
+		cfcurlErr := errors.New("Error calling CF API: " + orgsJSON["description"].(string))
+		return nil, cfcurlErr
+	}
+
+	return orgsJSON, err
+}
+
 //GetOrgs returns a struct that represents critical fields in the JSON
 func (api *APIHelper) GetOrgs() ([]Organization, error) {
-	orgsJSON, err := cfcurl.Curl(api.cli, "/v2/organizations")
+	orgsJSON, err := cfCurl(api.cli, "/v2/organizations")
 	if nil != err {
 		return nil, err
 	}
@@ -64,7 +75,7 @@ func (api *APIHelper) GetOrgs() ([]Organization, error) {
 	orgs := []Organization{}
 	for i := 1; i <= pages; i++ {
 		if 1 != i {
-			orgsJSON, err = cfcurl.Curl(api.cli, "/v2/organizations?page="+strconv.Itoa(i))
+			orgsJSON, err = cfCurl(api.cli, "/v2/organizations?page="+strconv.Itoa(i))
 		}
 		for _, o := range orgsJSON["resources"].([]interface{}) {
 			theOrg := o.(map[string]interface{})
@@ -86,7 +97,7 @@ func (api *APIHelper) GetOrgs() ([]Organization, error) {
 func (api *APIHelper) GetOrg(name string) (Organization, error) {
 	query := fmt.Sprintf("name:%s", name)
 	path := fmt.Sprintf("/v2/organizations?q=%s&inline-relations-depth=1", url.QueryEscape(query))
-	orgsJSON, err := cfcurl.Curl(api.cli, path)
+	orgsJSON, err := cfCurl(api.cli, path)
 	if nil != err {
 		return Organization{}, err
 	}
@@ -116,7 +127,7 @@ func (api *APIHelper) orgResourceToOrg(o interface{}) Organization {
 
 //GetQuotaMemoryLimit retruns the amount of memory (in MB) that the org is allowed
 func (api *APIHelper) GetQuotaMemoryLimit(quotaURL string) (float64, error) {
-	quotaJSON, err := cfcurl.Curl(api.cli, quotaURL)
+	quotaJSON, err := cfCurl(api.cli, quotaURL)
 	if nil != err {
 		return 0, err
 	}
@@ -125,7 +136,7 @@ func (api *APIHelper) GetQuotaMemoryLimit(quotaURL string) (float64, error) {
 
 //GetOrgMemoryUsage returns the amount of memory (in MB) that the org is consuming
 func (api *APIHelper) GetOrgMemoryUsage(org Organization) (float64, error) {
-	usageJSON, err := cfcurl.Curl(api.cli, org.URL+"/memory_usage")
+	usageJSON, err := cfCurl(api.cli, org.URL+"/memory_usage")
 	if nil != err {
 		return 0, err
 	}
@@ -137,7 +148,7 @@ func (api *APIHelper) GetOrgSpaces(spacesURL string) ([]Space, error) {
 	nextURL := spacesURL
 	spaces := []Space{}
 	for nextURL != "" {
-		spacesJSON, err := cfcurl.Curl(api.cli, nextURL)
+		spacesJSON, err := cfCurl(api.cli, nextURL)
 		if nil != err {
 			return nil, err
 		}
@@ -164,7 +175,7 @@ func (api *APIHelper) GetSpaceApps(appsURL string) ([]App, error) {
 	nextURL := appsURL
 	apps := []App{}
 	for nextURL != "" {
-		appsJSON, err := cfcurl.Curl(api.cli, nextURL)
+		appsJSON, err := cfCurl(api.cli, nextURL)
 		if nil != err {
 			return nil, err
 		}

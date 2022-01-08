@@ -186,4 +186,18 @@ var _ = Describe("UsageReport", func() {
 	})
 
 	// TODO need tests for no spaces and no apps in org.
+
+	Describe("error calling CF API", func() {
+		var errorJSON []string
+
+		BeforeEach(func() {
+			errorJSON = slurp("test-data/not-authenticated.json")
+		})
+
+		It("should return an error when CF API call fails", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns(errorJSON, nil)
+			_, err := api.GetOrgs()
+			Expect(err.Error()).To(Equal("Error calling CF API: Authentication error"))
+		})
+	})
 })
