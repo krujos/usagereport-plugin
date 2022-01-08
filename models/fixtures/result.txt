@@ -1,5 +1,7 @@
 Org test-org is consuming 256 MB of 4096 MB.
 	Space test-space is consuming 256 MB memory (6%) of org quota.
-		2 apps: 1 running 1 stopped
+		2 apps: 1 running, 1 stopped
 		3 instances: 2 running, 1 stopped
 You are running 2 apps in 1 org(s), with a total of 3 instances.
+		2 apps: 1 running, 1 stopped
+		3 instances: 2 running, 1 stopped
